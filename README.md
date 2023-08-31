@@ -49,3 +49,8 @@ user.
 - The app will make use of data visualization.
 - The app will be covered by tests with a coverage rate >= 90%.
 - The app will be monitored using an online performance monitoring tool.
+
+## How serverless functions will be used in this app
+
+Serverless functions will be used as it requires no backend maintenance, easy to scale, always available and no cost for idle time. This will allow for instant loading, offline support, push notifications, “add to home screen” prompt,
+responsive design, and cross-platform compatibility.
