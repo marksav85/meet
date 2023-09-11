@@ -1,6 +1,7 @@
 import "./App.css";
 import CitySearch from "./components/CitySearch";
 import EventList from "./components/EventList";
+import NumberOfEvents from "./components/numberofEvents";
 
 const App = () => {
   return (
@@ -9,6 +10,7 @@ const App = () => {
       <h4>Choose your nearest city</h4>
       <CitySearch />
       <EventList />
+      <NumberOfEvents />
     </div>
   );
 };
