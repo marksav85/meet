@@ -2,7 +2,6 @@
 import { useState } from "react";
 
 const Event = ({ event }) => {
-  /* const [showDetails, setShowDetails] = useState(false); */
   const [isHidden, setIsHidden] = useState(true);
 
   const handleShow = () => {
