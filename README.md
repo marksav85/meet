@@ -1,5 +1,7 @@
 # Meet App
 
+[Check of the app here: ](https://marksav85.github.io/meet/)
+
 ## Key Features:
 - Filter Events by City.
 - Show/Hide Event Details.
