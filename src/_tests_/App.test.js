@@ -23,7 +23,7 @@ describe("<App /> component", () => {
 
   test("render NumberOfEvents", () => {
     const AppDOM = render(<App />).container.firstChild;
-    expect(AppDOM.querySelector("#events_number")).toBeInTheDocument();
+    expect(AppDOM.querySelector("#event-number")).toBeInTheDocument();
   });
 });
 
