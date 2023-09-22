@@ -8,6 +8,17 @@
   box-sizing: border-box;
 }
 
+header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  background-color: #35C3A9;
+  color: white;
+  
+}
+
 ul {
   padding: 0;
   list-style: none;
@@ -75,16 +86,21 @@ input[type="number"] {
   border: 1px solid #ccc;
   border-radius: 4px;
   position: relative;
+  background-color: #3189D7;
+  color: white;
+
 }
 
 .details-btn {
   position: absolute;
   right: 5px;
   bottom: 5px;
-  padding: 5px 8px;
+  padding: 5px;
   border-radius: 4px;
   outline: none;
   cursor: pointer;
+  background-color: #6E6D70;
+  color: #fff;
 }
 
 .alerts-container {
@@ -98,6 +114,8 @@ input[type="number"] {
 .charts-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  border: 1px solid #4D5865;
+  border-radius: 4px;
 }
 
 @media (max-width: 768px) {
