@@ -8,15 +8,21 @@
   box-sizing: border-box;
 }
 
+body {
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  background-color: #f6b444;
+}
+
 header {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-bottom: 20px;
-  margin-bottom: 20px;
-  background-color: #35C3A9;
-  color: white;
-  
+  padding: 20px;
+  margin: 20px;
+  border-radius: 10px;
+  background-color: #db6b4b;
+  color: #f6b444;
 }
 
 ul {
@@ -86,9 +92,12 @@ input[type="number"] {
   border: 1px solid #ccc;
   border-radius: 4px;
   position: relative;
-  background-color: #3189D7;
-  color: white;
+  background-color: #dfeff0;
+  color: #f6b444;
+}
 
+.event_details p {
+  color: #db6b4b;
 }
 
 .details-btn {
@@ -99,7 +108,7 @@ input[type="number"] {
   border-radius: 4px;
   outline: none;
   cursor: pointer;
-  background-color: #6E6D70;
+  background-color: #db6b4b;
   color: #fff;
 }
 
@@ -114,8 +123,9 @@ input[type="number"] {
 .charts-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  border: 1px solid #4D5865;
+  border: 1px solid #4d5865;
   border-radius: 4px;
+  background-color: #dfeff0;
 }
 
 @media (max-width: 768px) {
