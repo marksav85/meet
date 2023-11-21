@@ -110,6 +110,7 @@ input[type="number"] {
   cursor: pointer;
   background-color: #db6b4b;
   color: #fff;
+  border: none;
 }
 
 .alerts-container {
