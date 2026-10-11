@@ -1,0 +1,172 @@
+{
+  "generatedAt": "2026-10-11T12:00:32Z",
+  "root": "docs",
+  "summary": {
+    "totalFiles": 11,
+    "totalDirectories": 3,
+    "byExtension": {
+      ".json": 4,
+      ".md": 6,
+      ".tsx": 1
+    }
+  },
+  "tree": [
+    {
+      "type": "directory",
+      "name": "0-ai",
+      "relativePath": "docs/0-ai",
+      "children": [
+        {
+          "type": "file",
+          "name": "README.md",
+          "relativePath": "docs/0-ai/README.md",
+          "extension": ".md",
+          "sizeKB": 0.8,
+          "tier": "core",
+          "riskIfMissing": "high",
+          "tags": [
+            "structure"
+          ]
+        },
+        {
+          "type": "directory",
+          "name": "artifacts",
+          "relativePath": "docs/0-ai/artifacts",
+          "children": [
+            {
+              "type": "file",
+              "name": "ARTIFACT_PACK_MANIFEST.json",
+              "relativePath": "docs/0-ai/artifacts/ARTIFACT_PACK_MANIFEST.json",
+              "extension": ".json",
+              "sizeKB": 4.1,
+              "tier": "core",
+              "riskIfMissing": "medium",
+              "tags": [
+                "artifacts"
+              ]
+            },
+            {
+              "type": "file",
+              "name": "CONTEXT_SUMMARY.md",
+              "relativePath": "docs/0-ai/artifacts/CONTEXT_SUMMARY.md",
+              "extension": ".md",
+              "sizeKB": 7.0,
+              "tier": "core",
+              "riskIfMissing": "medium",
+              "tags": [
+                "artifacts",
+                "context"
+              ]
+            },
+            {
+              "type": "file",
+              "name": "DOCS_TREE.json",
+              "relativePath": "docs/0-ai/artifacts/DOCS_TREE.json",
+              "extension": ".json",
+              "sizeKB": 4.6,
+              "tier": "core",
+              "riskIfMissing": "medium",
+              "tags": [
+                "artifacts",
+                "structure"
+              ]
+            },
+            {
+              "type": "file",
+              "name": "PROJECT_OVERVIEW.json",
+              "relativePath": "docs/0-ai/artifacts/PROJECT_OVERVIEW.json",
+              "extension": ".json",
+              "sizeKB": 5.6,
+              "tier": "core",
+              "riskIfMissing": "medium",
+              "tags": [
+                "artifacts",
+                "context"
+              ]
+            },
+            {
+              "type": "file",
+              "name": "SRC_SNAPSHOT_1.tsx",
+              "relativePath": "docs/0-ai/artifacts/SRC_SNAPSHOT_1.tsx",
+              "extension": ".tsx",
+              "sizeKB": 27.1,
+              "tier": "core",
+              "riskIfMissing": "medium",
+              "tags": [
+                "artifacts"
+              ]
+            },
+            {
+              "type": "file",
+              "name": "SRC_TREE.json",
+              "relativePath": "docs/0-ai/artifacts/SRC_TREE.json",
+              "extension": ".json",
+              "sizeKB": 4.5,
+              "tier": "core",
+              "riskIfMissing": "medium",
+              "tags": [
+                "artifacts",
+                "structure"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "name": "reference--artifacts--library-handoff.md",
+          "relativePath": "docs/0-ai/reference--artifacts--library-handoff.md",
+          "extension": ".md",
+          "sizeKB": 8.2,
+          "tier": "reference",
+          "riskIfMissing": "medium",
+          "tags": [
+            "context"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "directory",
+      "name": "2-development",
+      "relativePath": "docs/2-development",
+      "children": [
+        {
+          "type": "file",
+          "name": "audit--playbook--integration.md",
+          "relativePath": "docs/2-development/audit--playbook--integration.md",
+          "extension": ".md",
+          "sizeKB": 8.5,
+          "tier": "on_demand",
+          "riskIfMissing": "medium",
+          "tags": [
+            "execution"
+          ]
+        },
+        {
+          "type": "file",
+          "name": "workflow--playbook--integration.md",
+          "relativePath": "docs/2-development/workflow--playbook--integration.md",
+          "extension": ".md",
+          "sizeKB": 5.2,
+          "tier": "reference",
+          "riskIfMissing": "medium",
+          "tags": [
+            "execution"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "relativePath": "docs/README.md",
+      "extension": ".md",
+      "sizeKB": 0.7,
+      "tier": "core",
+      "riskIfMissing": "high",
+      "tags": [
+        "structure"
+      ]
+    }
+  ]
+}

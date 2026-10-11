@@ -1,0 +1,185 @@
+{
+  "generatedAt": "2026-10-11T12:00:32Z",
+  "root": "src",
+  "summary": {
+    "totalFiles": 15,
+    "totalDirectories": 3
+  },
+  "tree": [
+    {
+      "type": "file",
+      "name": "App.js",
+      "relativePath": "src/App.js",
+      "extension": ".js",
+      "sizeKB": 4.8,
+      "isComponent": true,
+      "imports": [
+        "src/App.css",
+        "src/api.js",
+        "src/components/Alert.js",
+        "src/components/CityEventsChart.js",
+        "src/components/CitySearch.js",
+        "src/components/EventErrorBoundary.js",
+        "src/components/EventGenresChart.js",
+        "src/components/EventList.js",
+        "src/components/NumberOfEvents.js"
+      ]
+    },
+    {
+      "type": "directory",
+      "name": "_tests_",
+      "relativePath": "src/_tests_",
+      "children": []
+    },
+    {
+      "type": "file",
+      "name": "api.js",
+      "relativePath": "src/api.js",
+      "extension": ".js",
+      "sizeKB": 0.6,
+      "isComponent": false,
+      "imports": [
+        "src/auth.js",
+        "src/mock-data.js"
+      ]
+    },
+    {
+      "type": "file",
+      "name": "auth.js",
+      "relativePath": "src/auth.js",
+      "extension": ".js",
+      "sizeKB": 11.8,
+      "isComponent": false,
+      "imports": []
+    },
+    {
+      "type": "directory",
+      "name": "components",
+      "relativePath": "src/components",
+      "children": [
+        {
+          "type": "file",
+          "name": "Alert.js",
+          "relativePath": "src/components/Alert.js",
+          "extension": ".js",
+          "sizeKB": 1.2,
+          "isComponent": true,
+          "imports": []
+        },
+        {
+          "type": "file",
+          "name": "CityEventsChart.js",
+          "relativePath": "src/components/CityEventsChart.js",
+          "extension": ".js",
+          "sizeKB": 1.2,
+          "isComponent": true,
+          "imports": []
+        },
+        {
+          "type": "file",
+          "name": "CitySearch.js",
+          "relativePath": "src/components/CitySearch.js",
+          "extension": ".js",
+          "sizeKB": 1.9,
+          "isComponent": true,
+          "imports": []
+        },
+        {
+          "type": "file",
+          "name": "Event.js",
+          "relativePath": "src/components/Event.js",
+          "extension": ".js",
+          "sizeKB": 1.7,
+          "isComponent": true,
+          "imports": []
+        },
+        {
+          "type": "file",
+          "name": "EventErrorBoundary.js",
+          "relativePath": "src/components/EventErrorBoundary.js",
+          "extension": ".js",
+          "sizeKB": 0.6,
+          "isComponent": true,
+          "imports": []
+        },
+        {
+          "type": "file",
+          "name": "EventGenresChart.js",
+          "relativePath": "src/components/EventGenresChart.js",
+          "extension": ".js",
+          "sizeKB": 1.7,
+          "isComponent": true,
+          "imports": []
+        },
+        {
+          "type": "file",
+          "name": "EventList.js",
+          "relativePath": "src/components/EventList.js",
+          "extension": ".js",
+          "sizeKB": 0.3,
+          "isComponent": true,
+          "imports": [
+            "src/components/Event.js"
+          ]
+        },
+        {
+          "type": "file",
+          "name": "NumberOfEvents.js",
+          "relativePath": "src/components/NumberOfEvents.js",
+          "extension": ".js",
+          "sizeKB": 0.8,
+          "isComponent": true,
+          "imports": []
+        }
+      ]
+    },
+    {
+      "type": "directory",
+      "name": "features",
+      "relativePath": "src/features",
+      "children": []
+    },
+    {
+      "type": "file",
+      "name": "index.js",
+      "relativePath": "src/index.js",
+      "extension": ".js",
+      "sizeKB": 1.3,
+      "isComponent": false,
+      "imports": [
+        "src/App.js",
+        "src/api.js",
+        "src/index.css",
+        "src/reportWebVitals.js",
+        "src/serviceWorkerRegistration.js"
+      ]
+    },
+    {
+      "type": "file",
+      "name": "reportWebVitals.js",
+      "relativePath": "src/reportWebVitals.js",
+      "extension": ".js",
+      "sizeKB": 0.4,
+      "isComponent": false,
+      "imports": []
+    },
+    {
+      "type": "file",
+      "name": "service-worker.js",
+      "relativePath": "src/service-worker.js",
+      "extension": ".js",
+      "sizeKB": 2.8,
+      "isComponent": false,
+      "imports": []
+    },
+    {
+      "type": "file",
+      "name": "serviceWorkerRegistration.js",
+      "relativePath": "src/serviceWorkerRegistration.js",
+      "extension": ".js",
+      "sizeKB": 4.9,
+      "isComponent": false,
+      "imports": []
+    }
+  ]
+}

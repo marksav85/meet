@@ -1,0 +1,132 @@
+{
+  "packId": "2026-10-11T12:00:32Z",
+  "runMode": "controller",
+  "generatedAt": "2026-10-11T12:00:32Z",
+  "verifiedAt": "2026-10-11T12:00:32Z",
+  "repoBranch": "main",
+  "repoHead": "010d71449a4de3b4c25900b9387a5e6d97e5ef49",
+  "scopeHeads": {
+    "docsHead": null,
+    "srcHead": "eb561aa2980545eb8d354e8d7ca3dd70ac8aa0e7",
+    "depsHead": "eb561aa2980545eb8d354e8d7ca3dd70ac8aa0e7"
+  },
+  "dirtyWorkingTree": true,
+  "stalenessSummary": {
+    "flagged": 6,
+    "regenerated": 6,
+    "acknowledged": 0,
+    "verified": 0,
+    "scopeChanges": {
+      "docs": true,
+      "src": true,
+      "deps": true
+    }
+  },
+  "artifacts": [
+    {
+      "artifactId": "SRC_TREE",
+      "path": "docs/0-ai/artifacts/SRC_TREE.json",
+      "generatedAt": "2026-10-11T12:00:32Z",
+      "verifiedAt": "2026-10-11T12:00:32Z",
+      "status": "regenerated",
+      "sizeBytes": 4585,
+      "contentHash": "355505c91881ff24ce12700e0c567549afc6cefae90dd566fdb5dbf9705118f8",
+      "dependsOnScopes": [
+        "src"
+      ],
+      "scopeHeadsAtVerify": {
+        "srcHead": "eb561aa2980545eb8d354e8d7ca3dd70ac8aa0e7"
+      }
+    },
+    {
+      "artifactId": "DOCS_TREE",
+      "path": "docs/0-ai/artifacts/DOCS_TREE.json",
+      "generatedAt": "2026-10-11T12:00:32Z",
+      "verifiedAt": "2026-10-11T12:00:32Z",
+      "status": "regenerated",
+      "sizeBytes": 4682,
+      "contentHash": "360126a24ece9fd73240a873fa6300ce494ab5f278df7ee12846a928cc3970da",
+      "dependsOnScopes": [
+        "docs"
+      ],
+      "scopeHeadsAtVerify": {
+        "docsHead": null
+      }
+    },
+    {
+      "artifactId": "PROJECT_OVERVIEW",
+      "path": "docs/0-ai/artifacts/PROJECT_OVERVIEW.json",
+      "generatedAt": "2026-10-11T12:00:32Z",
+      "verifiedAt": "2026-10-11T12:00:32Z",
+      "status": "regenerated",
+      "sizeBytes": 5719,
+      "contentHash": "20467db04c79e0ae019f7ed9f996c304f863972aec7d868c3f36546ae47ac5df",
+      "dependsOnScopes": [
+        "docs",
+        "deps"
+      ],
+      "scopeHeadsAtVerify": {
+        "docsHead": null,
+        "depsHead": "eb561aa2980545eb8d354e8d7ca3dd70ac8aa0e7"
+      }
+    },
+    {
+      "artifactId": "CONTEXT_SUMMARY",
+      "path": "docs/0-ai/artifacts/CONTEXT_SUMMARY.md",
+      "generatedAt": "2026-10-11T12:00:32Z",
+      "verifiedAt": "2026-10-11T12:00:32Z",
+      "status": "regenerated",
+      "sizeBytes": 7162,
+      "contentHash": "27fe4e3f2b1a71881329c6e4cbef116bc5c5fd7b2893e2b972e52b703b5b5c14",
+      "dependsOnScopes": [
+        "src"
+      ],
+      "scopeHeadsAtVerify": {
+        "srcHead": "eb561aa2980545eb8d354e8d7ca3dd70ac8aa0e7"
+      }
+    },
+    {
+      "artifactId": "SRC_SNAPSHOT_1",
+      "path": "docs/0-ai/artifacts/SRC_SNAPSHOT_1.tsx",
+      "generatedAt": "2026-10-11T12:00:32Z",
+      "verifiedAt": "2026-10-11T12:00:32Z",
+      "status": "regenerated",
+      "sizeBytes": 27785,
+      "contentHash": "fb217534668d03250f94e35893a1a66baa83dcaabcdc0a31ada8106e6932158e",
+      "dependsOnScopes": [
+        "src"
+      ],
+      "scopeHeadsAtVerify": {
+        "srcHead": "eb561aa2980545eb8d354e8d7ca3dd70ac8aa0e7"
+      }
+    },
+    {
+      "artifactId": "ARTIFACT_PACK_MANIFEST",
+      "path": "docs/0-ai/artifacts/ARTIFACT_PACK_MANIFEST.json",
+      "generatedAt": "2026-10-11T12:00:32Z",
+      "verifiedAt": "2026-10-11T12:00:32Z",
+      "status": "regenerated",
+      "dependsOnScopes": [
+        "docs",
+        "src",
+        "deps"
+      ],
+      "scopeHeadsAtVerify": {
+        "docsHead": null,
+        "srcHead": "eb561aa2980545eb8d354e8d7ca3dd70ac8aa0e7",
+        "depsHead": "eb561aa2980545eb8d354e8d7ca3dd70ac8aa0e7"
+      },
+      "warnings": [
+        "Self-referential hash and size intentionally omitted."
+      ]
+    }
+  ],
+  "warnings": [
+    "Uncommitted integration and artifact changes exist; commit-based staleness detection may miss local changes.",
+    "No previous manifest baseline; full pack generated.",
+    "docsHead is null: project docs have no committed history.",
+    "SRC_TREE/snapshot cover src only by canonical schema; backend context is in the project-owned companion.",
+    "Library synchronization pending; no upload performed.",
+    "Application tests/build not rerun; recorded results are historical."
+  ]
+}

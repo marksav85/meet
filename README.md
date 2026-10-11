@@ -56,3 +56,30 @@ user.
 
 Serverless functions will be used as it requires no backend maintenance, easy to scale, always available and no cost for idle time. This will allow for instant loading, offline support, push notifications, “add to home screen” prompt,
 responsive design, and cross-platform compatibility.
+## Developer workflow and Playbook
+
+This repository consumes the MSD Projects Playbook as a pinned, read-only Git
+submodule at `playbook/`. After cloning or switching to a branch with a different
+Playbook pin, run:
+
+```sh
+./scripts/setup-playbook.sh
+./scripts/setup-playbook.sh --check
+```
+
+Updates require explicit approval of an exact revision:
+
+```sh
+./scripts/update-playbook.sh <approved-full-commit-sha>
+```
+
+Helpers never commit, install dependencies, or select the latest upstream
+revision automatically. Root [AGENTS.md](AGENTS.md) provides Codex routing and
+project boundaries. See the [setup/update workflow](docs/2-development/workflow--playbook--integration.md)
+and [integration review](docs/2-development/audit--playbook--integration.md).
+
+Meet currently retains a JavaScript CRA frontend and separate Node.js Lambda
+backend. Phase 6's local API contracts require coordinated deployment with the
+backend; they are incompatible with the old deployed API. The technical goals
+above are historical project targets, not current validation evidence. Use the
+[Phase 6 report](PHASE6_REPORT.md) for completed repairs and deferred live checks.
