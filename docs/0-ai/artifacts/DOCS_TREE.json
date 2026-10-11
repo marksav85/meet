@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-11T12:52:18Z",
+  "generatedAt": "2026-10-11T14:19:37Z",
   "root": "docs",
   "summary": {
-    "totalFiles": 14,
-    "totalDirectories": 4,
+    "totalFiles": 16,
+    "totalDirectories": 8,
     "byExtension": {
       ".json": 4,
-      ".md": 9,
+      ".md": 11,
       ".tsx": 1
     }
   },
@@ -21,7 +21,7 @@
           "name": "README.md",
           "relativePath": "docs/0-ai/README.md",
           "extension": ".md",
-          "sizeKB": 0.8,
+          "sizeKB": 1.0,
           "tier": "core",
           "riskIfMissing": "high",
           "tags": [
@@ -38,7 +38,7 @@
               "name": "ARTIFACT_PACK_MANIFEST.json",
               "relativePath": "docs/0-ai/artifacts/ARTIFACT_PACK_MANIFEST.json",
               "extension": ".json",
-              "sizeKB": 4.4,
+              "sizeKB": 4.7,
               "tier": "core",
               "riskIfMissing": "medium",
               "tags": [
@@ -50,7 +50,7 @@
               "name": "CONTEXT_SUMMARY.md",
               "relativePath": "docs/0-ai/artifacts/CONTEXT_SUMMARY.md",
               "extension": ".md",
-              "sizeKB": 7.6,
+              "sizeKB": 8.1,
               "tier": "core",
               "riskIfMissing": "medium",
               "tags": [
@@ -63,7 +63,7 @@
               "name": "DOCS_TREE.json",
               "relativePath": "docs/0-ai/artifacts/DOCS_TREE.json",
               "extension": ".json",
-              "sizeKB": 5.8,
+              "sizeKB": 7.5,
               "tier": "core",
               "riskIfMissing": "medium",
               "tags": [
@@ -116,7 +116,7 @@
           "name": "reference--artifacts--library-handoff.md",
           "relativePath": "docs/0-ai/reference--artifacts--library-handoff.md",
           "extension": ".md",
-          "sizeKB": 8.3,
+          "sizeKB": 9.4,
           "tier": "reference",
           "riskIfMissing": "medium",
           "tags": [
@@ -156,6 +156,18 @@
         },
         {
           "type": "file",
+          "name": "review--testing--phase-7b-1.md",
+          "relativePath": "docs/2-development/review--testing--phase-7b-1.md",
+          "extension": ".md",
+          "sizeKB": 28.9,
+          "tier": "on_demand",
+          "riskIfMissing": "medium",
+          "tags": [
+            "execution"
+          ]
+        },
+        {
+          "type": "file",
           "name": "workflow--playbook--integration.md",
           "relativePath": "docs/2-development/workflow--playbook--integration.md",
           "extension": ".md",
@@ -173,11 +185,36 @@
       "name": "README.md",
       "relativePath": "docs/README.md",
       "extension": ".md",
-      "sizeKB": 0.9,
+      "sizeKB": 1.1,
       "tier": "core",
       "riskIfMissing": "high",
       "tags": [
         "structure"
+      ]
+    },
+    {
+      "type": "directory",
+      "name": "aws--lambda-functions",
+      "relativePath": "docs/aws--lambda-functions",
+      "children": [
+        {
+          "type": "directory",
+          "name": "auth-server-dev-getAccessToken-bf21485b-bc1a-47ad-9842-ef4541631fe0",
+          "relativePath": "docs/aws--lambda-functions/auth-server-dev-getAccessToken-bf21485b-bc1a-47ad-9842-ef4541631fe0",
+          "children": []
+        },
+        {
+          "type": "directory",
+          "name": "auth-server-dev-getAuthURL-3a180fbe-07e1-44d1-9314-5ce3f57ad80c",
+          "relativePath": "docs/aws--lambda-functions/auth-server-dev-getAuthURL-3a180fbe-07e1-44d1-9314-5ce3f57ad80c",
+          "children": []
+        },
+        {
+          "type": "directory",
+          "name": "auth-server-dev-getCalendarEvents-3f2234f6-64ff-4ede-b5ac-d9490cd35733",
+          "relativePath": "docs/aws--lambda-functions/auth-server-dev-getCalendarEvents-3f2234f6-64ff-4ede-b5ac-d9490cd35733",
+          "children": []
+        }
       ]
     },
     {
@@ -190,7 +227,7 @@
           "name": "project--execution-plan.md",
           "relativePath": "docs/project-management/project--execution-plan.md",
           "extension": ".md",
-          "sizeKB": 2.3,
+          "sizeKB": 3.6,
           "tier": "reference",
           "riskIfMissing": "medium",
           "tags": [
@@ -203,6 +240,18 @@
           "relativePath": "docs/project-management/project--progress-log_001.md",
           "extension": ".md",
           "sizeKB": 1.4,
+          "tier": "reference",
+          "riskIfMissing": "medium",
+          "tags": [
+            "context"
+          ]
+        },
+        {
+          "type": "file",
+          "name": "project--progress-log_002.md",
+          "relativePath": "docs/project-management/project--progress-log_002.md",
+          "extension": ".md",
+          "sizeKB": 1.7,
           "tier": "reference",
           "riskIfMissing": "medium",
           "tags": [

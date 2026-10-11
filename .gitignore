@@ -22,4 +22,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-/secrets
+# aws lambda functions
+docs/aws--lambda-functions/
+
+# auth creds
+docs/oAuth-client--credentials

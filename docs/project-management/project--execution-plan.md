@@ -2,7 +2,7 @@
 
 ## Document Header
 - **Audience:** Project owner and Codex
-- **Purpose:** Bound Phase 7A implementation and record subsequent unapproved stages.
+- **Purpose:** Bound incremental modernization and distinguish preparation from approved live execution.
 - **Status:** reference
 - **Authority:** Explicit Phase 7A user instruction; not retrospective full lifecycle approval.
 - **Last updated:** 2026-10-11
@@ -38,3 +38,24 @@ rollout, frontend/Vite/Atatus work, Stitch redesign, Cloudflare migration and
 production replacement. No deployment, commit/push, submodule update or Phase 7B
 is authorized here. Backend lint/format and full lifecycle mapping remain separate
 planning decisions; this plan records only known approved modernization scope.
+
+## Phase 7B.1 — approved preparation and Phase 7B.2 gates
+
+Phase 7A is committed at 6289ae6. The explicit Phase 7B.1 request authorizes
+read-only inspection, official documentation research, offline regression/static/ZIP
+checks and project-owned documentation/context updates. No source/config/dependency
+changes, vendor authentication/terms, AWS API operations, Google changes, deployment,
+real OAuth, commit/push or Playbook update are authorized. Existing untracked exports
+are preserved and credential contents are not inspected.
+
+Sequence: review evidence → research auth/storage/consent prerequisites → rerun offline
+checks → record manual setup/matrix/isolation/cost → publish preparation review/log
+and refresh only affected context. Preparation completion means a reviewable plan,
+not certified deployable infrastructure. See
+[Phase 7B.1 review](../2-development/review--testing--phase-7b-1.md).
+
+Phase 7B.2 needs owner decisions on vendor eligibility/authentication, AWS identity
+and shared storage, Google client/consent isolation and spending tolerance. Official
+packaging can access/write AWS S3/SSM; approve that scope separately. Inspect final
+ZIP/template/IAM/stage before specific deployment approval, then authorize live OAuth
+separately. Existing /dev and production Google client/frontend stay untouched.

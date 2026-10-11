@@ -13,4 +13,6 @@ hand. Refresh through the canonical artifact controller and generators.
 - [Pack manifest](artifacts/ARTIFACT_PACK_MANIFEST.json)
 
 Library synchronization is pending. These outputs describe current working-tree
-state; they do not authorize Phase 7A or certify live OAuth/deployment readiness.
+state; Phase 7A is committed and Phase 7B.1 preparation is complete. They do not authorize
+Phase 7B.2 or certify live OAuth/deployment readiness. Source artifacts are verified
+unchanged; documentation/overview/summary and manifest are refreshed.

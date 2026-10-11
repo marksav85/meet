@@ -1,0 +1,85 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyDevResources",
+      "Effect": "Deny",
+      "Action": [
+        "cloudformation:*",
+        "lambda:*",
+        "logs:*",
+        "iam:*",
+        "apigateway:*"
+      ],
+      "Resource": [
+        "arn:aws:cloudformation:eu-central-1:__AWS_ACCOUNT_ID__:stack/auth-server-dev/*",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-dev-*",
+        "arn:aws:logs:eu-central-1:__AWS_ACCOUNT_ID__:log-group:/aws/lambda/auth-server-dev-*",
+        "arn:aws:iam::__AWS_ACCOUNT_ID__:role/auth-server-dev-*",
+        "arn:aws:apigateway:eu-central-1::/restapis/__VERIFIED_DEV_REST_API_ID__",
+        "arn:aws:apigateway:eu-central-1::/restapis/__VERIFIED_DEV_REST_API_ID__/*"
+      ]
+    },
+    {
+      "Sid": "DenyOtherRegionalEndpoints",
+      "Effect": "Deny",
+      "Action": [
+        "cloudformation:*",
+        "lambda:*",
+        "apigateway:*",
+        "logs:*",
+        "ssm:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": "eu-central-1"
+        }
+      }
+    },
+    {
+      "Sid": "CreateOnlyApprovedFrankfurtBootstrapBucket",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket"
+      ],
+      "Resource": "arn:aws:s3:::__APPROVED_NEW_BOOTSTRAP_BUCKET_NAME__",
+      "Condition": {
+        "StringEquals": {
+          "s3:locationconstraint": "eu-central-1"
+        }
+      }
+    },
+    {
+      "Sid": "ConfigureOnlyApprovedBootstrapBucket",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutBucketPublicAccessBlock"
+      ],
+      "Resource": "arn:aws:s3:::__APPROVED_NEW_BOOTSTRAP_BUCKET_NAME__",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-central-1",
+          "s3:ResourceAccount": "__AWS_ACCOUNT_ID__"
+        }
+      }
+    },
+    {
+      "Sid": "InitializeBucketPointerWithoutOverwrite",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:PutParameter"
+      ],
+      "Resource": "arn:aws:ssm:eu-central-1:__AWS_ACCOUNT_ID__:parameter/serverless-framework/deployment/s3-bucket",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-central-1",
+          "ssm:Overwrite": "false",
+          "ssm:Policies": "false"
+        }
+      }
+    }
+  ]
+}

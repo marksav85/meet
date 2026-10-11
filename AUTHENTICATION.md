@@ -76,3 +76,7 @@ until then. Do not reuse a testing client or secret for production.
 Phase 7A local modernization is documented in `auth-server/README.md` and
 `docs/2-development/review--backend--phase-7a.md`. The runtime/SDK/Framework
 configuration has been updated locally; live deployment remains unchanged.
+
+See [Phase 7B.1 preparation](docs/2-development/review--testing--phase-7b-1.md) for
+manual development-client setup, exact localtest allowlist and protected configuration.
+Preparation does not authorize real OAuth, vendor/AWS access or deployment.

@@ -24,8 +24,8 @@ OAUTH_REDIRECT_URIS is an explicit trusted JSON array of approved callbacks.
 No credential values belong in docs, frontend variables or repository artifacts.
 YAML resolves deployment environment values rather than reading local config.json.
 The handler returns safe errors when required configuration is missing/invalid.
-The production callback stays approved; add localhost only through the later
-isolated-stage/client configuration. No actual credentials were read or created.
+The YAML production-only callback default remains unchanged. The later isolated
+stage must explicitly override it with the localhost-only development allowlist. No actual credentials were read or created.
 
 Only `localtest` is registered in the local stage allowlist. Unknown stages,
 including `dev`, have no selectedStage mapping. The package wrapper rejects any
@@ -41,7 +41,8 @@ npm run package:localtest --prefix auth-server -- --stage localtest
 ```
 
 This command was not run in Phase 7A. Official documentation states v4 needs
-Serverless authentication, and AWS packaging may need AWS credentials. No login,
+Serverless authentication, and AWS packaging requires valid AWS credentials and may write S3/SSM state or
+deployment storage. It is not a guaranteed offline/read-only operation. No login,
 paid terms or Dashboard service is configured. Do not work around this gate.
 
 Classic packaging is selected with esbuild disabled. Patterns first exclude all
@@ -66,3 +67,11 @@ resolved environment, stage, IAM/template, package and dependency exclusions,
 preflight, real PKCE consent/exchange and Calendar access on the isolated stage.
 Keep the old /dev deployment intact and never deploy the new frontend alone.
 Phase 7B/Vite/Atatus/UI/Cloudflare work remains outside this phase.
+
+Phase 7B.1 preparation is documented in the
+[isolated testing review](../docs/2-development/review--testing--phase-7b-1.md).
+It confirms offline regressions and supplies manual client/account/storage steps;
+7B.2 packaging, storage initialization, deployment and real OAuth require explicit
+approval. A new stage may share regional storage; a new Google client in the existing
+project shares its production audience. Use development-only protected values and
+explicit localhost-only callbacks on localtest; keep the production frontend intact.

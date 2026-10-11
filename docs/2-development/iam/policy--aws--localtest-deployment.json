@@ -1,0 +1,227 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyDevResources",
+      "Effect": "Deny",
+      "Action": [
+        "cloudformation:*",
+        "lambda:*",
+        "logs:*",
+        "iam:*",
+        "apigateway:*"
+      ],
+      "Resource": [
+        "arn:aws:cloudformation:eu-central-1:__AWS_ACCOUNT_ID__:stack/auth-server-dev/*",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-dev-*",
+        "arn:aws:logs:eu-central-1:__AWS_ACCOUNT_ID__:log-group:/aws/lambda/auth-server-dev-*",
+        "arn:aws:iam::__AWS_ACCOUNT_ID__:role/auth-server-dev-*",
+        "arn:aws:apigateway:eu-central-1::/restapis/__VERIFIED_DEV_REST_API_ID__",
+        "arn:aws:apigateway:eu-central-1::/restapis/__VERIFIED_DEV_REST_API_ID__/*"
+      ]
+    },
+    {
+      "Sid": "DenyOtherRegionalEndpoints",
+      "Effect": "Deny",
+      "Action": [
+        "cloudformation:*",
+        "lambda:*",
+        "apigateway:*",
+        "logs:*",
+        "ssm:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": "eu-central-1"
+        }
+      }
+    },
+    {
+      "Sid": "CreateOrUpdateOnlyLocaltestStack",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:UpdateStack",
+        "cloudformation:TagResource",
+        "cloudformation:UntagResource"
+      ],
+      "Resource": "arn:aws:cloudformation:eu-central-1:__AWS_ACCOUNT_ID__:stack/auth-server-localtest/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-central-1"
+        }
+      }
+    },
+    {
+      "Sid": "RejectExplicitCloudFormationServiceRole",
+      "Effect": "Deny",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:UpdateStack"
+      ],
+      "Resource": "arn:aws:cloudformation:eu-central-1:__AWS_ACCOUNT_ID__:stack/auth-server-localtest/*",
+      "Condition": {
+        "Null": {
+          "cloudformation:RoleArn": "false"
+        }
+      }
+    },
+    {
+      "Sid": "ManageOnlyAppFunctionsViaCloudFormation",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:CreateFunction",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration",
+        "lambda:PublishVersion",
+        "lambda:DeleteFunction",
+        "lambda:TagResource",
+        "lambda:UntagResource"
+      ],
+      "Resource": [
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getAuthURL",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getAccessToken",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getCalendarEvents",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getAuthURL:*",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getAccessToken:*",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getCalendarEvents:*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-central-1"
+        },
+        "ForAnyValue:StringEquals": {
+          "aws:CalledVia": "cloudformation.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "GrantOnlyApiGatewayInvocation",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:AddPermission"
+      ],
+      "Resource": [
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getAuthURL",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getAccessToken",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getCalendarEvents",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getAuthURL:*",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getAccessToken:*",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getCalendarEvents:*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-central-1",
+          "lambda:Principal": "apigateway.amazonaws.com"
+        },
+        "ForAnyValue:StringEquals": {
+          "aws:CalledVia": "cloudformation.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "RemoveAppInvocationPermissionsViaCloudFormation",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:RemovePermission"
+      ],
+      "Resource": [
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getAuthURL",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getAccessToken",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getCalendarEvents",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getAuthURL:*",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getAccessToken:*",
+        "arn:aws:lambda:eu-central-1:__AWS_ACCOUNT_ID__:function:auth-server-localtest-getCalendarEvents:*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-central-1"
+        },
+        "ForAnyValue:StringEquals": {
+          "aws:CalledVia": "cloudformation.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "ManageOnlyVerifiedApiViaCloudFormation",
+      "Effect": "Allow",
+      "Action": [
+        "apigateway:POST",
+        "apigateway:PUT",
+        "apigateway:PATCH",
+        "apigateway:DELETE"
+      ],
+      "Resource": [
+        "arn:aws:apigateway:eu-central-1::/restapis/__VERIFIED_LOCALTEST_REST_API_ID__",
+        "arn:aws:apigateway:eu-central-1::/restapis/__VERIFIED_LOCALTEST_REST_API_ID__/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-central-1"
+        },
+        "ForAnyValue:StringEquals": {
+          "aws:CalledVia": "cloudformation.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "ManageOnlyAppLogGroupsViaCloudFormation",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:DeleteLogGroup",
+        "logs:PutRetentionPolicy",
+        "logs:DeleteRetentionPolicy",
+        "logs:TagLogGroup",
+        "logs:UntagLogGroup"
+      ],
+      "Resource": [
+        "arn:aws:logs:eu-central-1:__AWS_ACCOUNT_ID__:log-group:/aws/lambda/auth-server-localtest-getAuthURL:*",
+        "arn:aws:logs:eu-central-1:__AWS_ACCOUNT_ID__:log-group:/aws/lambda/auth-server-localtest-getAccessToken:*",
+        "arn:aws:logs:eu-central-1:__AWS_ACCOUNT_ID__:log-group:/aws/lambda/auth-server-localtest-getCalendarEvents:*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-central-1"
+        },
+        "ForAnyValue:StringEquals": {
+          "aws:CalledVia": "cloudformation.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "PassOnlyIntendedRoleToLambda",
+      "Effect": "Allow",
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Resource": "arn:aws:iam::__AWS_ACCOUNT_ID__:role/auth-server-localtest-eu-central-1-lambdaRole",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "lambda.amazonaws.com"
+        },
+        "ForAnyValue:StringEquals": {
+          "aws:CalledVia": "cloudformation.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "WriteOrPruneOnlyLocaltestArtifacts",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:AbortMultipartUpload",
+        "s3:ListMultipartUploadParts"
+      ],
+      "Resource": "arn:aws:s3:::__VERIFIED_DEPLOYMENT_BUCKET_NAME__/__VERIFIED_LOCALTEST_OBJECT_PREFIX__/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "eu-central-1",
+          "s3:ResourceAccount": "__AWS_ACCOUNT_ID__"
+        }
+      }
+    }
+  ]
+}

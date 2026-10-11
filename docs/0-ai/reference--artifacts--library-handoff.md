@@ -15,12 +15,23 @@ and all five `prompt--artifact--generate-*` generators (src-tree, docs-tree,
 project-overview, context-summary, snapshot). The integration module, root
 AGENTS.md, execution protocol, naming and metadata contracts also apply.
 
-The Phase 7A request authorizes context refresh following local backend modernization.
-The previous six-member pack is committed at current HEAD `8c6cd7e` on main.
-Playbook remains pinned at `162a9d832acd73c9cb105ad5a5bc16b8135fb6ce`.
-Phase 7A changes are uncommitted; all six members are regenerated against that
-working tree and verified together. Library synchronization remains pending;
-no upload confirmation was supplied. The manifest records current provenance.
+The Phase 7B.1 request authorizes preparation documentation and justified context
+refresh. Phase 7A is committed at current HEAD `6289ae6` on main; Playbook remains
+pinned at `162a9d832acd73c9cb105ad5a5bc16b8135fb6ce`. This phase changes only
+project documentation and context, with uncommitted changes recorded by the manifest.
+
+Preflight verified all existing hashes/sizes. Documentation tree and overview are
+affected by documentation/dependency-scope checkpoint changes; summary additionally
+needs current committed status and testing-preparation constraints. Regenerate those
+three through the canonical generators and always rewrite the manifest. Verify the
+unchanged SRC_TREE and snapshot against exact current frontend source and retain their
+bytes/original generation timestamps. The explicit request authorizes this bounded
+refresh; no extra workflow confirmation or source regeneration is necessary.
+
+The untracked `docs/aws--lambda-functions/` export directory is preserved, not reviewed
+or uploaded. DOCS_TREE records directory structure with node_modules excluded;
+exported credential JSON/source files are not documentation inputs and are not read
+or copied. Library synchronization remains pending; nothing is uploaded here.
 
 ## Canonical schema boundaries and decisions
 
@@ -84,8 +95,10 @@ counts, sizeKB rounding, controlled docs classification/tags, snapshot byte equa
 manifest SHA-256/byte sizes and consistency, and a sensitive-content scan.
 The summary is below 150 lines. The docs index includes all new outputs.
 
-Fresh Phase 7A verification: 52 backend tests, 88 frontend unit/Gherkin tests,
-nine mock browser tests, successful build and zero backend audit vulnerabilities.
+Fresh Phase 7B.1 verification: 52 backend tests, 88 frontend unit/Gherkin tests,
+nine mock browser tests, successful build/static checks and retained ZIP verification
+with three extracted SDK checks. Phase 7A zero backend audit vulnerabilities remains
+historical; no fresh audit occurred in preparation.
 Historical Phase 6 recorded 97 frontend and 41 backend; earlier integration
 recorded 88 unit/Gherkin and 41 backend. All auth is mocked; real Google/AWS and
 authenticated Serverless packaging remain unverified. See the Phase 7A review.
@@ -94,7 +107,8 @@ SDK and config test files; service docs/scripts/tests are excluded from packagin
 
 ## Library Synchronization Handoff — pending
 
-All six pack artifacts below are updated and ready for upload after local generation
+The full six-member pack below is verified, with three regenerated context members,
+two preserved source members and an updated manifest. It is ready for upload after local generation
 validation. Upload together so ChatGPT Web can verify the pack. Destination:
 this Meet project's ChatGPT Web Library; Playbook defines no folder/collection
 name beyond that. Nothing has been uploaded or marked Library-confirmed.
@@ -118,7 +132,9 @@ and compile reusable template sources. No Predev bundle or bespoke combined
 bundle was generated for this backend modernization context. Audit reports are
 not mandatory pack members; this companion records the generation review.
 
-Phase 7A refresh is complete. After further backend changes, refresh overview/summary/backend companion and the full manifest;
+Phase 7B.1 refresh is complete. See
+[testing preparation](../2-development/review--testing--phase-7b-1.md) for manual
+account/client instructions, shared storage caveats and separate 7B.2 approval gates. After further backend changes, refresh overview/summary/backend companion and the full manifest;
 check trees and snapshots for source/config impacts. After Vite/Atatus changes,
 refresh overview/source tree/snapshot/summary. After UI redesign, refresh source
 tree/snapshot/summary; after Cloudflare deployment, refresh overview/summary and
