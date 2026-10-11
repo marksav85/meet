@@ -14,7 +14,7 @@ describe("local mock-data browser behavior", () => {
     page.on("request", (request) => {
       const url = new URL(request.url());
       if (["localhost", "127.0.0.1"].includes(url.hostname) || ["data:", "blob:"].includes(url.protocol)) request.continue();
-      else request.abort(); // Includes Atatus, fonts, Google, and AWS.
+      else request.abort(); // Includes external fonts, Google, and AWS.
     });
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto("http://localhost:3000/", { waitUntil: "networkidle0" });
@@ -74,6 +74,7 @@ describe("local mock-data browser behavior", () => {
   });
   test("charts render real SVGs and update when the count changes", async () => {
     expect(await page.$$eval(".recharts-wrapper > svg.recharts-surface", (items) => items.length)).toBe(2);
+    expect(await page.$$eval(".recharts-legend-item-text", (items) => items.map((item) => item.textContent))).toEqual(["React", "JavaScript", "Node", "jQuery", "Angular"]);
     const before = await page.$eval(".recharts-scatter", (element) => element.innerHTML);
     const input = await page.$("#event-number input");
     await input.click({ clickCount: 3 });

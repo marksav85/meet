@@ -27,3 +27,6 @@ docs/aws--lambda-functions/
 
 # auth creds
 docs/oAuth-client--credentials
+
+/dist
+/.vite

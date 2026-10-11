@@ -91,26 +91,24 @@ It routes tasks to canonical execution, development, planning and documentation
 instructions without adopting unrelated framework-specific examples. No global
 Codex settings or automatic package install hooks are needed.
 
-CRA's Webpack Babel/ESLint boundary is `src/`, with ModuleScopePlugin guarding
-external source imports. CRA Jest roots are also `src/`. Backend tests explicitly
-run `auth-server/test/handler.test.js`. No compiler/test roots were broadened.
-Root package ESLint ignorePatterns excludes `playbook/**`; `.prettierignore`
-excludes Playbook if formatting is introduced or an editor uses Prettier. There
-is no installed project formatter script or standalone backend lint command.
-No TypeScript configuration is needed for this JavaScript project.
+Vite builds root `index.html` and its frontend import graph; do not import
+Playbook examples into runtime source. Vite watching explicitly excludes
+`playbook/**`, Jest roots remain `src/`, and `.prettierignore` excludes Playbook.
+There is no standalone frontend/backend lint or formatter command. No TypeScript
+configuration is needed for this JavaScript project.
 
 ## Validation
 
 ```sh
 bash -n scripts/playbook-common.sh scripts/setup-playbook.sh scripts/update-playbook.sh
 ./scripts/setup-playbook.sh --check
-CI=true npm test -- --watchAll=false --runInBand --testPathIgnorePatterns=EndtoEnd
+npm test
 npm test --prefix auth-server
 npm run build
 git diff --check
 ```
 
-The build includes existing CRA frontend lint checks. Browser regression tests
+The Vite build does not perform lint checks. Browser regression tests
 are available separately with the local mock server and external request
 blocking; do not run live OAuth for workflow changes. Record actual validation,
 remaining warnings and deferred work in project documentation.

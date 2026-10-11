@@ -51,6 +51,7 @@ const EventGenresChart = ({ events }) => {
         </Pie>
 
         <Legend
+          itemSorter={null}
           verticalAlign="top"
           align="center"
           layout="horizontal"

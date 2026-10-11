@@ -3,6 +3,7 @@
 Project-owned workflow and review outputs live here. Canonical reusable guidance
 remains in the pinned `../playbook/docs/templates/` submodule.
 
+- [Frontend development and Vite migration](2-development/workflow--frontend--development.md)
 - [AWS localtest IAM policy proposal](2-development/review--aws--localtest-deployment-policy.md)
 - [Phase 7B.1 isolated testing preparation](2-development/review--testing--phase-7b-1.md)
 - [Phase 7A backend review](2-development/review--backend--phase-7a.md)

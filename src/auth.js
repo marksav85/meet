@@ -15,10 +15,10 @@ export class AuthError extends Error {
 export const getAuthConfig = (location = window.location) => {
   const local = ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname);
   return {
-    mode: process.env.REACT_APP_DATA_MODE || (local ? "mock" : "oauth"),
+    mode: import.meta.env.VITE_DATA_MODE || (local ? "mock" : "oauth"),
     // Live localhost mode must explicitly select the future isolated testing API.
-    apiBase: process.env.REACT_APP_API_BASE_URL || (local ? "" : "https://joocz3kndl.execute-api.eu-central-1.amazonaws.com/dev"),
-    redirectUri: process.env.REACT_APP_OAUTH_REDIRECT_URI || (local ? "http://localhost:3000/" : "https://marksav85.github.io/meet/"),
+    apiBase: import.meta.env.VITE_API_BASE_URL || (local ? "" : "https://joocz3kndl.execute-api.eu-central-1.amazonaws.com/dev"),
+    redirectUri: import.meta.env.VITE_OAUTH_REDIRECT_URI || (local ? "http://localhost:3000/" : "https://marksav85.github.io/meet/"),
   };
 };
 

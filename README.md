@@ -50,7 +50,7 @@ mobile.
 user.
 - The app will make use of data visualization.
 - The app will be covered by tests with a coverage rate >= 90%.
-- The app will be monitored using an online performance monitoring tool.
+- Obsolete Atatus monitoring has been removed; no monitoring replacement is installed.
 
 ## How serverless functions will be used in this app
 
@@ -78,8 +78,19 @@ revision automatically. Root [AGENTS.md](AGENTS.md) provides Codex routing and
 project boundaries. See the [setup/update workflow](docs/2-development/workflow--playbook--integration.md)
 and [integration review](docs/2-development/audit--playbook--integration.md).
 
-Meet currently retains a JavaScript CRA frontend and separate Node.js Lambda
-backend. Phase 6's local API contracts require coordinated deployment with the
-backend; they are incompatible with the old deployed API. The technical goals
-above are historical project targets, not current validation evidence. Use the
-[Phase 6 report](PHASE6_REPORT.md) for completed repairs and deferred live checks.
+## Frontend development
+
+The JavaScript React 18 frontend now uses Vite. Use Node.js 24 and `npm ci`, then
+`npm start` to serve **http://localhost:3000/** in mock mode. Port 3000 is required;
+Vite fails if it is occupied. `npm test` runs unit/component/Gherkin tests;
+`npm run test:browser` runs the blocked-network browser suite against that server.
+`npm run build` writes the root-path PWA to `dist/`; `npm run preview` serves it
+locally. No deployment command is provided.
+
+See [frontend setup and OAuth configuration](docs/2-development/workflow--frontend--development.md).
+The owner reports successful live OAuth and Calendar testing against the isolated
+`localtest` Node.js 24 Lambda backend. The new demonstration calendar is being
+populated separately. The original AWS `/dev` and published GitHub Pages site
+remain unchanged. Cloudflare and production callback/backend cutover require
+separate authorization. The technical goals above are historical targets, not
+current validation evidence (including IE11, Lighthouse and coverage targets).

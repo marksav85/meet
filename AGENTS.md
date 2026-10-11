@@ -1,6 +1,6 @@
 # Meet App — Codex guidance
 
-Meet is an existing JavaScript React 18 / CRA frontend (`src/`, `public/`) with
+Meet is an existing JavaScript React 18 / Vite frontend (`src/`, `public/`) with
 an independent Node.js Google OAuth / AWS Lambda backend (`auth-server/`).
 Retain these boundaries. Do not introduce TypeScript, Next.js, a new framework,
 or dependencies because a Playbook example uses them.
@@ -46,26 +46,26 @@ do not fetch a newer Playbook automatically or invent a missing module.
 
 ## Modernization boundaries
 
-Phases 5 and 6 are committed. Phase 7A backend modernization is implemented locally
-and reviewed in docs/2-development/review--backend--phase-7a.md; live testing and
-Phase 7B require separate instructions. The local Phase 6 API contracts are incompatible with the
-old deployed backend. Do not deploy a frontend alone or run live OAuth as a test.
+Phases 5, 6 and 7A are committed. The owner reports successful live OAuth and
+Calendar integration against the isolated `localtest` backend. The original
+`/dev` deployment remains protected. Frontend production cutover requires
+separate authorization; do not run live OAuth as a local regression test.
 No commits, pushes, deployments, credential changes, dependency upgrades, or
 later phases without authorization. Never print secrets or raw SDK/request data.
 
 ## Validation and tooling
 
 Use installed tools; no automatic installs/upgrades or package-manager hooks that
-update Playbook. CRA compilation and Jest discovery are scoped to `src/`;
-Playbook is excluded from ESLint and formatter discovery. Do not import its
-reference code into runtime source. Backend tests run independently.
+update Playbook. Vite builds from root `index.html` and frontend imports; Jest discovery is scoped
+to `src/`. Playbook is excluded from formatter discovery and Vite watching;
+never import it into runtime source. Backend tests run independently.
 
 - `./scripts/setup-playbook.sh --check`: read-only pin/sparse/cleanliness check.
-- `CI=true npm test -- --watchAll=false --runInBand --testPathIgnorePatterns=EndtoEnd`:
+- `npm test`:
   mocked frontend unit/Gherkin tests.
 - `npm test --prefix auth-server`: mocked backend tests.
-- `npm run build`: production build including CRA's frontend lint checks.
-- Browser tests require the local mock server and external request blocking;
+- `npm run build`: production Vite/PWA build; this is not a lint check.
+- `npm run test:browser`: browser tests require the local mock server and external request blocking;
   run only when useful for the change. Do not start live OAuth mode for them.
 - `git diff --check`: patch whitespace check.
 
