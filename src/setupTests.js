@@ -4,22 +4,6 @@
 // learn more: https://github.com/testing-library/jest-dom
 import "@testing-library/jest-dom";
 
-// Here, add portions of the warning messages you want to intentionally prevent from appearing
-const MESSAGES_TO_IGNORE = [
-  "When testing, code that causes React state updates should be wrapped into act(...):",
-  "Error:",
-  "The above error occurred",
-];
-
-const originalError = console.error.bind(console.error);
-
-console.error = (...args) => {
-  const ignoreMessage = MESSAGES_TO_IGNORE.find((message) =>
-    args.toString().includes(message)
-  );
-  if (!ignoreMessage) originalError(...args);
-};
-
 jest.setTimeout(30000);
 
 const { ResizeObserver } = window;
@@ -37,4 +21,16 @@ beforeEach(() => {
 afterEach(() => {
   window.ResizeObserver = ResizeObserver;
   jest.restoreAllMocks();
+});
+
+// Tests always use fixtures; never infer API access from the test runner's URL.
+jest.mock("./api", () => ({
+  ...jest.requireActual("./api"),
+  getEvents: jest.fn(),
+}));
+
+beforeEach(() => {
+  const { getEvents } = require("./api");
+  getEvents.mockReset();
+  getEvents.mockResolvedValue(require("./mock-data").default);
 });

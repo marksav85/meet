@@ -1,98 +1,48 @@
 import { loadFeature, defineFeature } from "jest-cucumber";
-import { render } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import App from "../App";
-import userEvent from "@testing-library/user-event";
+import userEvent from "../test-utils";
 
 const feature = loadFeature("./src/features/showHideAnEventsDetails.feature");
-
 defineFeature(feature, (test) => {
+  let event;
+  let user;
+  const openApp = async () => {
+    user = userEvent.setup();
+    render(<App />);
+    event = (await screen.findAllByRole("listitem"))[0];
+  };
   test("An event element is collapsed by default.", ({ given, when, then }) => {
-    let AppComponent;
-    given("user can see a list of events", async () => {
-      AppComponent = render(<App />);
-      const AppDOM = AppComponent.container.firstChild;
-      const EventListDOM = AppDOM.querySelector("#event-list");
-      expect(EventListDOM).toBeInTheDocument();
-    });
-
-    when("user does not click on the show details button", () => {
-      // no code needed for this step
-    });
-
+    given("user can see a list of events", openApp);
+    when("user does not click on the show details button", () => {});
     then("the event element will be collapsed by default", () => {
-      const AppDOM = AppComponent.container.firstChild;
-      const EventListDOM = AppDOM.querySelector("#event-list");
-      const EventDetails = EventListDOM.querySelector(".event_details");
-      expect(EventDetails).not.toBeInTheDocument();
+      expect(within(event).getByRole("button", { name: "Show details" })).toHaveAttribute("aria-expanded", "false");
     });
   });
-
   test("User can expand an event to see details.", ({ given, when, then }) => {
-    let AppComponent;
-    let AppDOM;
-    let EventListDOM;
-
-    given("user can see a list of events", () => {
-      AppComponent = render(<App />);
-      AppDOM = AppComponent.container.firstChild;
-      EventListDOM = AppDOM.querySelector("#event-list");
-      expect(EventListDOM).toBeInTheDocument();
-    });
-
+    given("user can see a list of events", openApp);
     when("user clicks on the show details button", async () => {
-      const user = userEvent.setup();
-      const showDetailsButton = EventListDOM.querySelector(".details-btn");
-      await user.click(showDetailsButton);
+      await user.click(within(event).getByRole("button", { name: "Show details" }));
     });
-
-    then("the event element will be expanded", async () => {
-      const user = userEvent.setup();
-      const showDetailsButton = EventListDOM.querySelector(".details-btn");
-      await user.click(showDetailsButton);
-      const eventDetails = EventListDOM.querySelector(".event_details");
-      expect(eventDetails).toBeInTheDocument();
+    then("the event element will be expanded", () => {
+      expect(within(event).getByRole("button", { name: "Hide details" })).toHaveAttribute("aria-expanded", "true");
+      expect(event.querySelector(".event_details")).toBeVisible();
     });
   });
-
-  test("User can collapse an event to hide details.", ({
-    given,
-    and,
-    when,
-    then,
-  }) => {
-    let AppComponent;
-    let AppDOM;
-    let EventListDOM;
+  test("User can collapse an event to hide details.", ({ given, and, when, then }) => {
     given("user has already clicked on the details button", async () => {
-      AppComponent = render(<App />);
-      const user = userEvent.setup();
-      AppDOM = AppComponent.container.firstChild;
-      EventListDOM = AppDOM.querySelector("#event-list");
-      const showDetailsButton = EventListDOM.querySelector(".details-btn");
-      await user.click(showDetailsButton);
+      await openApp();
+      await user.click(within(event).getByRole("button", { name: "Show details" }));
     });
-
-    and("the event element is already expanded", async () => {
-      const user = userEvent.setup();
-      const showDetailsButton = EventListDOM.querySelector(".details-btn");
-      await user.click(showDetailsButton);
-      const eventDetails = EventListDOM.querySelector(".event_details");
-      expect(eventDetails).toBeInTheDocument();
+    and("the event element is already expanded", () => {
+      expect(event.querySelector(".event_details")).toBeVisible();
     });
-
     when("user clicks on the hide details button", async () => {
-      const user = userEvent.setup();
-      const showDetailsButton = EventListDOM.querySelector(".details-btn");
-      await user.click(showDetailsButton);
+      await user.click(within(event).getByRole("button", { name: "Hide details" }));
     });
-
-    then("the event element will collapse", async () => {
-      const user = userEvent.setup();
-      const showDetailsButton = EventListDOM.querySelector(".details-btn");
-      await user.click(showDetailsButton);
-      const eventDetails = EventListDOM.querySelector(".event_details");
-      await user.click(showDetailsButton);
-      expect(eventDetails).not.toBeInTheDocument();
+    then("the event element will collapse", () => {
+      expect(event.querySelector(".event_details")).not.toBeInTheDocument();
+      expect(within(event).getByRole("button", { name: "Show details" })).toHaveAttribute("aria-expanded", "false");
     });
   });
 });

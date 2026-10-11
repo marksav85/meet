@@ -1,8 +1,8 @@
 /* eslint-disable testing-library/no-node-access */
 import { loadFeature, defineFeature } from "jest-cucumber";
-import { render, within } from "@testing-library/react";
+import { render, within, screen } from "@testing-library/react";
 import App from "../App";
-import userEvent from "@testing-library/user-event";
+import userEvent from "../test-utils";
 
 const feature = loadFeature("./src/features/specifyNumberOfEvents.feature");
 
@@ -14,8 +14,9 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let AppComponent;
-    given("the app is open", () => {
+    given("the app is open", async () => {
       AppComponent = render(<App />);
+      await screen.findAllByRole("button", { name: "Show details" });
     });
     let AppDOM;
     and("a list of events is displayed", () => {
@@ -31,7 +32,8 @@ defineFeature(feature, (test) => {
     then(/^(\d+) events are shown by default$/, (arg0) => {
       const EventNumberDOM = AppDOM.querySelector("#event-number");
       const EventNumberInput = within(EventNumberDOM).queryByRole("textbox");
-      expect(EventNumberInput.value).toBe("32");
+      expect(EventNumberInput.value).toBe(arg0);
+      expect(within(AppDOM.querySelector("#event-list")).getAllByRole("listitem")).toHaveLength(Number(arg0));
     });
   });
 
@@ -42,8 +44,9 @@ defineFeature(feature, (test) => {
   }) => {
     let AppComponent;
     let AppDOM;
-    given("user can see a list of events", () => {
+    given("user can see a list of events", async () => {
       AppComponent = render(<App />);
+      await screen.findAllByRole("button", { name: "Show details" });
       AppDOM = AppComponent.container.firstChild;
       const EventListDOM = AppDOM.querySelector("#event-list");
       expect(EventListDOM).toBeInTheDocument();
@@ -53,13 +56,14 @@ defineFeature(feature, (test) => {
       const user = userEvent.setup();
       const EventNumberDOM = AppDOM.querySelector("#event-number");
       const EventNumberInput = within(EventNumberDOM).queryByRole("textbox");
-      await user.type(EventNumberInput, "{backspace}{backspace}{backspace}3");
+      await user.clear(EventNumberInput);
+      await user.type(EventNumberInput, arg0);
     });
 
     then(/^a maximum of (\d+) events are shown$/, async (arg0) => {
       const EventListDOM = AppDOM.querySelector("#event-list");
       const EventListItems = within(EventListDOM).queryAllByRole("listitem");
-      expect(EventListItems.length).toBe(3);
+      expect(EventListItems.length).toBe(Number(arg0));
     });
   });
 });

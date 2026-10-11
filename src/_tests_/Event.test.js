@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import Event from "../components/Event";
+import userEvent from "../test-utils";
+import Event, { formatEventStart } from "../components/Event";
 /* import mockData from "../mock-data"; */
 import { getEvents } from "../api";
 
@@ -21,7 +21,7 @@ describe("<Event /> component", () => {
   });
 
   test("renders event start time", () => {
-    const eventStart = EventComponent.queryByText(allEvents[0].created);
+    const eventStart = EventComponent.queryByText(formatEventStart(allEvents[0].start));
     expect(eventStart).toBeInTheDocument();
   });
 

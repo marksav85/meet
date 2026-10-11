@@ -1,5 +1,6 @@
 import "./App.css";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import EventErrorBoundary from "./components/EventErrorBoundary";
 import CitySearch from "./components/CitySearch";
 import EventList from "./components/EventList";
 import NumberOfEvents from "./components/NumberOfEvents";
@@ -9,34 +10,69 @@ import { extractLocations, getEvents } from "./api";
 import { InfoAlert, ErrorAlert, WarningAlert } from "./components/Alert";
 
 const App = () => {
-  const [allLocations, setAllLocations] = useState([]);
+  const [allEvents, setAllEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [reload, setReload] = useState(0);
   const [currentNOE, setCurrentNOE] = useState(32);
-  const [events, setEvents] = useState([]);
   const [currentCity, setCurrentCity] = useState("See all cities");
   const [infoAlert, setInfoAlert] = useState("");
   const [errorAlert, setErrorAlert] = useState("");
   const [warningAlert, setWarningAlert] = useState("");
 
   useEffect(() => {
-    if (navigator.onLine) {
-      // set the warning alert message to an empty string ""
-      setWarningAlert("");
-    } else {
-      // set the warning alert message to a non-empty string
-      setWarningAlert("You are offline. Data may not be up-to-date");
-    }
-    fetchData();
-  }, [currentCity, currentNOE]);
+    const updateConnection = () => {
+      setWarningAlert(navigator.onLine ? "" : "You are offline. Data may not be up-to-date");
+      setReload((value) => value + 1);
+    };
+    window.addEventListener("online", updateConnection);
+    window.addEventListener("offline", updateConnection);
+    return () => {
+      window.removeEventListener("online", updateConnection);
+      window.removeEventListener("offline", updateConnection);
+    };
+  }, []);
 
-  const fetchData = async () => {
-    const allEvents = await getEvents();
-    const filteredEvents =
-      currentCity === "See all cities"
-        ? allEvents
-        : allEvents.filter((event) => event.location === currentCity);
-    setEvents(filteredEvents.slice(0, currentNOE));
-    setAllLocations(extractLocations(allEvents));
-  };
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setLoadError("");
+    setWarningAlert(navigator.onLine ? "" : "You are offline. Data may not be up-to-date");
+    const load = async () => {
+      try {
+        const result = await getEvents();
+        if (!Array.isArray(result) || result.some((event) => !event || typeof event !== "object" || Array.isArray(event))) {
+          throw new Error("Invalid event response");
+        }
+        const normalized = result.map((event, index) => ({
+          ...event,
+          id: typeof event.id === "string" ? event.id : `event-${index}`,
+          summary: typeof event.summary === "string" ? event.summary : "",
+          location: typeof event.location === "string" ? event.location : "",
+          description: typeof event.description === "string" ? event.description : "",
+        }));
+        if (active) setAllEvents(normalized);
+      } catch {
+        if (active) {
+          setAllEvents([]);
+          setLoadError("Events could not be loaded. Please check your connection and try again.");
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [reload]);
+
+  const allLocations = useMemo(() => extractLocations(allEvents), [allEvents]);
+  const filteredEvents = currentCity === "See all cities"
+    ? allEvents
+    : allEvents.filter((event) => event.location === currentCity);
+  const events = filteredEvents.slice(0, currentNOE);
+  const retry = () => setReload((value) => value + 1);
 
   return (
     <div className="App">
@@ -54,11 +90,20 @@ const App = () => {
         setCurrentNOE={setCurrentNOE}
         setErrorAlert={setErrorAlert}
       />
-      <div className="charts-container">
-        <EventGenresChart events={events} />
-        <CityEventsChart allLocations={allLocations} events={events} />
-      </div>
-      <EventList events={events} />
+      {loading && <p role="status">Loading events…</p>}
+      {loadError && (
+        <div role="alert">
+          {loadError} <button onClick={retry}>Try again</button>
+        </div>
+      )}
+      {!loading && !loadError && events.length === 0 && <p role="status">No events found.</p>}
+      <EventErrorBoundary resetKey={allEvents} onRetry={retry}>
+        <div className="charts-container">
+          <EventGenresChart events={events} />
+          <CityEventsChart allLocations={allLocations} events={events} />
+        </div>
+        <EventList events={events} />
+      </EventErrorBoundary>
     </div>
   );
 };

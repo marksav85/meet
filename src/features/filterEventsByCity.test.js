@@ -1,8 +1,8 @@
 import { loadFeature, defineFeature } from "jest-cucumber";
-import { render, within, waitFor } from "@testing-library/react";
+import { render, within, screen, waitFor } from "@testing-library/react";
 import App from "../App";
 import { getEvents } from "../api";
-import userEvent from "@testing-library/user-event";
+import userEvent from "../test-utils";
 
 const feature = loadFeature("./src/features/filterEventsByCity.feature");
 
@@ -17,8 +17,9 @@ defineFeature(feature, (test) => {
     });
 
     let AppComponent;
-    when("the user opens the app", () => {
+    when("the user opens the app", async () => {
       AppComponent = render(<App />);
+      await screen.findAllByRole("button", { name: "Show details" });
     });
 
     then("the user should see the list of all upcoming events.", async () => {
@@ -38,8 +39,9 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     let AppComponent;
-    given("the main page is open", () => {
+    given("the main page is open", async () => {
       AppComponent = render(<App />);
+      await screen.findAllByRole("button", { name: "Show details" });
     });
 
     let CitySearchDOM;
@@ -73,6 +75,7 @@ defineFeature(feature, (test) => {
     let citySearchInput;
     given("user was typing “Berlin” in the city textbox", async () => {
       AppComponent = render(<App />);
+      await screen.findAllByRole("button", { name: "Show details" });
       const user = userEvent.setup();
       AppDOM = AppComponent.container.firstChild;
       CitySearchDOM = AppDOM.querySelector("#city-search");

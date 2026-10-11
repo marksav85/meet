@@ -1,86 +1,101 @@
 import puppeteer from "puppeteer";
 
-// FEATURE 1
-
-describe("filter events by a city", () => {
+describe("local mock-data browser behavior", () => {
   let browser;
   let page;
+  let errors;
   beforeAll(async () => {
-    browser = await puppeteer.launch({
-      headless: true,
-      slowMo: 250, // slow down by 250ms,
-      timeout: 0, // removes any puppeteer/browser timeout limitations (this isn't the same as the timeout of jest)
-    });
+    browser = await puppeteer.launch({ headless: true, timeout: 20000 });
+  });
+  beforeEach(async () => {
+    errors = [];
     page = await browser.newPage();
-    await page.goto("http://localhost:3000/");
+    await page.setRequestInterception(true);
+    page.on("request", (request) => {
+      const url = new URL(request.url());
+      if (["localhost", "127.0.0.1"].includes(url.hostname) || ["data:", "blob:"].includes(url.protocol)) request.continue();
+      else request.abort(); // Includes Atatus, fonts, Google, and AWS.
+    });
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto("http://localhost:3000/", { waitUntil: "networkidle0" });
     await page.waitForSelector(".event");
   });
-
-  afterAll(() => {
-    browser.close();
+  afterEach(async () => {
+    if (page) await page.close();
+    expect(errors).toEqual([]);
   });
-
-  test("show upcoming events from all cities by default", async () => {
-    // if your event's details have a different selector, use it instead of .event .details
-    const eventTitle = await page.$(".event .event_summary");
-    expect(eventTitle).toBeDefined();
+  afterAll(async () => {
+    if (browser) await browser.close();
   });
-
-  test("show a list of of suggestions when searching by city", async () => {
-    await page.click("#city-search .city");
-
+  const searchBerlin = async () => {
+    await page.click(".city");
     await page.type(".city", "Berlin");
-
-    const cityCount = await page.$$eval(".suggestions", (li) => li.length);
-    expect(cityCount).toBe(1);
+  };
+  test("shows events from all cities by default", async () => {
+    expect(await page.$$eval(".event", (events) => events.length)).toBe(32);
+    expect(await page.$eval(".event_summary", (element) => element.textContent.trim())).not.toBe("");
   });
-
-  test("select a city from the suggested list", async () => {
+  test("shows matching city suggestions", async () => {
+    await searchBerlin();
+    expect(await page.$$eval(".suggestions li", (items) => items.map((item) => item.textContent))).toEqual(["Berlin, Germany", "See all cities"]);
+  });
+  test("selecting Berlin filters the entire event list", async () => {
+    await searchBerlin();
     await page.click(".suggestions li");
-    const eventList = await page.$eval(
-      ".event_location",
-      (city) => city.innerText
-    );
-    expect(eventList).toBe("Berlin, Germany");
+    await page.waitForFunction(() => document.querySelectorAll(".event").length === 17);
+    expect(await page.$$eval(".event_location", (items) => items.map((item) => item.textContent))).toEqual(Array(17).fill("Berlin, Germany"));
   });
-});
-
-// FEATURE 2
-
-describe("show/hide an event details", () => {
-  let browser;
-  let page;
-  beforeAll(async () => {
-    browser = await puppeteer.launch({
-      headless: true,
-      slowMo: 250, // slow down by 250ms,
-      timeout: 0, // removes any puppeteer/browser timeout limitations (this isn't the same as the timeout of jest)
-    });
-    page = await browser.newPage();
-    await page.goto("http://localhost:3000/");
-    await page.waitForSelector(".event");
+  test("details start collapsed", async () => {
+    expect(await page.$(".event .event_details")).toBeNull();
+    expect(await page.$eval(".details-btn", (button) => button.textContent)).toBe("Show details");
+  });
+  test("details can be expanded", async () => {
+    await page.click(".details-btn");
+    await page.waitForSelector(".event .event_details", { visible: true });
+    expect(await page.$eval(".event_details", (element) => element.textContent.trim())).not.toBe("");
+    expect(await page.$eval(".details-btn", (button) => button.textContent)).toBe("Hide details");
+  });
+  test("expanded details can be collapsed", async () => {
+    await page.click(".details-btn");
+    await page.waitForSelector(".event .event_details", { visible: true });
+    await page.click(".details-btn");
+    await page.waitForSelector(".event .event_details", { hidden: true });
+    expect(await page.$(".event .event_details")).toBeNull();
+  });
+  test("invalid count preserves the last valid list", async () => {
+    const input = await page.$("#event-number input");
+    await input.click({ clickCount: 3 });
+    await input.type("10");
+    await page.waitForFunction(() => document.querySelectorAll(".event").length === 10);
+    await input.click({ clickCount: 3 });
+    await input.type("0");
+    expect(await page.$$eval(".event", (events) => events.length)).toBe(10);
+    expect(await page.$eval(".alerts-container", (element) => element.textContent)).toContain("whole number from 1 to 32");
+  });
+  test("charts render real SVGs and update when the count changes", async () => {
+    expect(await page.$$eval(".recharts-wrapper > svg.recharts-surface", (items) => items.length)).toBe(2);
+    const before = await page.$eval(".recharts-scatter", (element) => element.innerHTML);
+    const input = await page.$("#event-number input");
+    await input.click({ clickCount: 3 });
+    await input.type("10");
+    await page.waitForFunction(() => document.querySelectorAll(".event").length === 10);
+    await page.waitForFunction((previous) => document.querySelector(".recharts-scatter").innerHTML !== previous, {}, before);
+  });
+  test("city chart follows a same-length city filter", async () => {
+    const input = await page.$("#event-number input");
+    await input.click({ clickCount: 3 });
+    await input.type("10");
+    await page.waitForFunction(() => document.querySelectorAll(".event").length === 10);
+    await searchBerlin();
+    await page.click(".suggestions li");
+    await page.waitForFunction(() => [...document.querySelectorAll(".event_location")].every((item) => item.textContent === "Berlin, Germany"));
+    // Allow the existing Recharts transition to settle before inspecting its tooltip.
+    await new Promise((resolve) => setTimeout(resolve, 1700));
+    await page.hover(".recharts-scatter-symbol");
+    expect(await page.$eval(".recharts-tooltip-wrapper", (element) => element.textContent)).toContain("Number of Events : 0");
+    const points = await page.$$(".recharts-scatter-symbol");
+    await points[1].hover();
+    expect(await page.$eval(".recharts-tooltip-wrapper", (element) => element.textContent)).toContain("Number of Events : 10");
   });
 
-  afterAll(() => {
-    browser.close();
-  });
-
-  test("An event element is collapsed by default", async () => {
-    // if your event's details have a different selector, use it instead of .event .details
-    const eventDetails = await page.$(".event .details");
-    expect(eventDetails).toBeNull();
-  });
-
-  test("User can expand an event to see its details", async () => {
-    await page.click(".event .details-btn");
-
-    const eventDetails = await page.$(".event .details");
-    expect(eventDetails).toBeDefined();
-  });
-
-  test("User can collapse an event to hide details", async () => {
-    await page.click(".event .details-btn");
-    const eventDetails = await page.$(".event .details");
-    expect(eventDetails).toBeNull();
-  });
 });

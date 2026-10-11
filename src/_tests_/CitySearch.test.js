@@ -1,7 +1,7 @@
 // src/__tests__/CitySearch.test.js
 
-import { render, within, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, within, screen, waitFor } from "@testing-library/react";
+import userEvent from "../test-utils";
 import CitySearch from "../components/CitySearch";
 import App from "../App";
 import { extractLocations, getEvents } from "../api";
@@ -98,6 +98,7 @@ describe("CitySearch /> integration", () => {
   test("renders suggestions list when the app is rendered", async () => {
     const user = userEvent.setup();
     const AppComponent = render(<App />);
+      await screen.findAllByRole("button", { name: "Show details" });
     const AppDOM = AppComponent.container.firstChild;
 
     const CitySearchDOM = AppDOM.querySelector("#city-search");
@@ -114,4 +115,11 @@ describe("CitySearch /> integration", () => {
       expect(suggestionListItems.length).toBe(allLocations.length + 1);
     });
   });
+});
+
+test("new locations keep an active search filtered", async () => {
+  const view = render(<CitySearch allLocations={["Berlin", "London"]} setCurrentCity={() => {}} setInfoAlert={() => {}} />);
+  await userEvent.setup().type(view.getByRole("textbox"), "Ber");
+  view.rerender(<CitySearch allLocations={["Bern", "Paris"]} setCurrentCity={() => {}} setInfoAlert={() => {}} />);
+  expect(view.getAllByRole("listitem").map((item) => item.textContent)).toEqual(["Bern", "See all cities"]);
 });

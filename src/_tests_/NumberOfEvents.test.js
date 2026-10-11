@@ -1,6 +1,6 @@
-import { render, within } from "@testing-library/react";
+import { render, within, screen } from "@testing-library/react";
 import NumberOfEvents from "../components/NumberOfEvents";
-import userEvent from "@testing-library/user-event";
+import userEvent from "../test-utils";
 import App from "../App";
 
 describe("<NumberOfEvents /> component", () => {
@@ -36,6 +36,7 @@ describe("<NumberOfEvents /> integration", () => {
   test("renders correct number of events when user types in number of events textbox", async () => {
     const user = userEvent.setup();
     const AppComponent = render(<App />);
+      await screen.findAllByRole("button", { name: "Show details" });
     const AppDOM = AppComponent.container.firstChild;
 
     const NumberOfEventsDOM = AppDOM.querySelector("#event-number");

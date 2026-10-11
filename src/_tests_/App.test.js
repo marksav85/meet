@@ -1,28 +1,26 @@
 // src/__tests__/App.test.js
 
-import { render, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, within, screen } from "@testing-library/react";
+import userEvent from "../test-utils";
 import { getEvents } from "../api";
 import App from "../App";
 
 describe("<App /> component", () => {
   let AppDOM;
-  beforeEach(() => {
+  beforeEach(async () => {
     AppDOM = render(<App />).container.firstChild;
+    await screen.findAllByRole("button", { name: "Show details" });
   });
 
   test("renders list of events", () => {
-    const AppDOM = render(<App />).container.firstChild;
     expect(AppDOM.querySelector("#event-list")).toBeInTheDocument();
   });
 
   test("render CitySearch", () => {
-    const AppDOM = render(<App />).container.firstChild;
     expect(AppDOM.querySelector("#city-search")).toBeInTheDocument();
   });
 
   test("render NumberOfEvents", () => {
-    const AppDOM = render(<App />).container.firstChild;
     expect(AppDOM.querySelector("#event-number")).toBeInTheDocument();
   });
 });

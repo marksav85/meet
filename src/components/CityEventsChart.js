@@ -1,6 +1,5 @@
 // src/components/CityEventsChart.js
 
-import { useState, useEffect } from "react";
 import {
   ScatterChart,
   Scatter,
@@ -12,22 +11,10 @@ import {
 } from "recharts";
 
 const CityEventsChart = ({ allLocations, events }) => {
-  const [data, setData] = useState([]);
-
-  useEffect(() => {
-    setData(() => getData());
-  }, [`${events}`]);
-
-  const getData = () => {
-    const data = allLocations.map((location) => {
-      const count = events.filter(
-        (event) => event.location === location
-      ).length;
-      const city = location.split(/, | - /)[0];
-      return { city, count };
-    });
-    return data;
-  };
+  const data = allLocations.filter((location) => typeof location === "string" && location.trim()).map((location) => ({
+    city: location.split(/, | - /)[0],
+    count: events.filter((event) => event.location === location).length,
+  }));
 
   return (
     <ResponsiveContainer width="99%" height={400}>

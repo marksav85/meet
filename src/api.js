@@ -11,7 +11,7 @@ import mockData from "./mock-data";
  * The Set will remove all duplicates from the array.
  */
 export const extractLocations = (events) => {
-  const extractedLocations = events.map((event) => event.location);
+  const extractedLocations = events.map((event) => event.location).filter((location) => typeof location === "string" && location.trim());
   const locations = [...new Set(extractedLocations)];
   return locations;
 };
@@ -52,8 +52,7 @@ export const getEvents = async () => {
   }
 
   if (!navigator.onLine) {
-    const events = localStorage.getItem("lastEvents");
-    return events ? JSON.parse(events) : [];
+    return readCachedEvents();
   }
 
   const token = await getAccessToken();
@@ -65,11 +64,12 @@ export const getEvents = async () => {
       "/" +
       token;
     const response = await fetch(url);
+    if (!response.ok) throw new Error("Unable to load events");
     const result = await response.json();
-    if (result) {
+    if (Array.isArray(result?.events)) {
       localStorage.setItem("lastEvents", JSON.stringify(result.events));
       return result.events;
-    } else return null;
+    } else throw new Error("Invalid event response");
   }
 };
 
@@ -106,4 +106,17 @@ export const getAccessToken = async () => {
     return code && getToken(code);
   }
   return accessToken;
+};
+
+// Cache failures are surfaced by App without changing the authentication contract.
+export const readCachedEvents = () => {
+  try {
+    const cached = localStorage.getItem("lastEvents");
+    if (!cached) return [];
+    const events = JSON.parse(cached);
+    if (!Array.isArray(events)) throw new Error("Invalid cache");
+    return events;
+  } catch {
+    throw new Error("Saved events could not be read. Please reconnect and try again.");
+  }
 };
