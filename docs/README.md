@@ -3,6 +3,10 @@
 Project-owned workflow and review outputs live here. Canonical reusable guidance
 remains in the pinned `../playbook/docs/templates/` submodule.
 
+- [Phase 7A backend review](2-development/review--backend--phase-7a.md)
+- [Modernization execution plan](project-management/project--execution-plan.md)
+- [Progress log 001](project-management/project--progress-log_001.md)
+- [Backend developer workflow](../auth-server/README.md)
 - [AI context artifacts and Library handoff](0-ai/README.md)
 - [Playbook setup/update workflow](2-development/workflow--playbook--integration.md)
 - [Playbook integration review and modernization gaps](2-development/audit--playbook--integration.md)

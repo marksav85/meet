@@ -46,8 +46,9 @@ do not fetch a newer Playbook automatically or invent a missing module.
 
 ## Modernization boundaries
 
-Phases 5 and 6 are committed; Phase 7A backend modernization is next but requires
-its own instruction. The local Phase 6 API contracts are incompatible with the
+Phases 5 and 6 are committed. Phase 7A backend modernization is implemented locally
+and reviewed in docs/2-development/review--backend--phase-7a.md; live testing and
+Phase 7B require separate instructions. The local Phase 6 API contracts are incompatible with the
 old deployed backend. Do not deploy a frontend alone or run live OAuth as a test.
 No commits, pushes, deployments, credential changes, dependency upgrades, or
 later phases without authorization. Never print secrets or raw SDK/request data.

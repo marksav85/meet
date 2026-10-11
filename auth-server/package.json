@@ -4,11 +4,19 @@
   "description": "",
   "main": "handler.js",
   "scripts": {
-    "test": "node test/handler.test.js"
+    "test": "node test/handler.test.js && node test/sdk.test.js && node test/config.test.js",
+    "check:local": "node scripts/check-local.cjs",
+    "package:localtest": "node scripts/serverless-package.cjs"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "googleapis": "^110.0.0"
+    "googleapis": "185.0.0"
+  },
+  "devDependencies": {
+    "serverless": "4.43.0"
+  },
+  "engines": {
+    "node": ">=24 <25"
   }
 }

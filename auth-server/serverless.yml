@@ -1,32 +1,33 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
-
 service: auth-server
 
-frameworkVersion: "3"
+frameworkVersion: "4.43.0"
+
+# Unsupported stages fail variable resolution, including legacy /dev.
+custom:
+  allowedStages:
+    localtest: localtest
+  selectedStage: ${self:custom.allowedStages.${opt:stage, 'localtest'}}
+
+build:
+  esbuild: false
 
 provider:
   name: aws
-  runtime: nodejs18.x
+  runtime: nodejs24.x
+  stage: ${self:custom.selectedStage}
+  logRetentionInDays: 14
+  # Do not enable API Gateway full request/response execution logging.
+  logs:
+    restApi: false
 
   region: eu-central-1
   timeout: 30 # optional, in seconds, default is 6
 
   # you can define service wide environment variables here
   environment:
-    CLIENT_ID: ${file(config.json):CLIENT_ID}
-    CLIENT_SECRET: ${file(config.json):CLIENT_SECRET}
-    CALENDAR_ID: ${file(config.json):CALENDAR_ID}
+    CLIENT_ID: ${env:CLIENT_ID}
+    CLIENT_SECRET: ${env:CLIENT_SECRET}
+    CALENDAR_ID: ${env:CALENDAR_ID}
     # Trusted deployment configuration; never accept arbitrary callback URLs.
     # Add localhost only on the isolated testing stage prepared in a later phase.
     OAUTH_REDIRECT_URIS: ${env:OAUTH_REDIRECT_URIS, '["https://marksav85.github.io/meet/"]'}
@@ -34,8 +35,13 @@ provider:
 # Explicit packaging exclusions protect local configuration and test fixtures.
 package:
   patterns:
-    - '!config.json'
-    - '!test/**'
+    - '!**'
+    - 'handler.js'
+    - 'node_modules/**'
+    - '!node_modules/.cache/**'
+    # Runtime JS retained; SDK declarations/source maps are not needed in Lambda.
+    - '!node_modules/**/*.d.ts'
+    - '!node_modules/**/*.map'
 
 functions:
   getAuthURL:

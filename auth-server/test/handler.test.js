@@ -3,12 +3,12 @@ const assert = require('node:assert/strict');
 const Module = require('node:module');
 const origin = 'https://marksav85.github.io';
 const redirectUri = `${origin}/meet/`;
-let tokenError, calendarError, clients, logs;
+let tokenError, calendarError, clients, logs, tokenResult;
 const savedWarn = console.warn;
 class OAuth2 {
   constructor(id, secret, redirect) { this.redirect = redirect; clients.push(this); }
   generateAuthUrl(params) { return 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({ ...params, redirect_uri: this.redirect, response_type: 'code' }); }
-  async getToken(input) { this.input = input; if (tokenError) throw tokenError; return { tokens: { access_token: 'fake-bearer', refresh_token: 'private-refresh', expiry_date: Date.now() + 3600000 } }; }
+  async getToken(input) { this.input = input; if (tokenError) throw tokenError; return { tokens: tokenResult }; }
   setCredentials(credentials) { this.credentials = credentials; }
 }
 const originalLoad = Module._load;
@@ -21,7 +21,7 @@ Module._load = originalLoad;
 beforeEach(() => {
   process.env.CLIENT_ID = 'fake-client'; process.env.CLIENT_SECRET = 'fake-secret'; process.env.CALENDAR_ID = 'fake-calendar';
   delete process.env.OAUTH_REDIRECT_URIS;
-  tokenError = calendarError = undefined; clients = []; logs = [];
+  tokenError = calendarError = undefined; tokenResult = { access_token: 'fake-bearer', refresh_token: 'private-refresh', expiry_date: Date.now() + 3600000 }; clients = []; logs = [];
   console.warn = (entry) => logs.push(entry);
 });
 after(() => { console.warn = savedWarn; });
@@ -72,3 +72,6 @@ test('unexpected SDK failure is sanitized', async () => { tokenError = new Error
 for (const [field, value] of [['state', 'bad'], ['codeChallenge', 'bad'], ['code', 'bad code'], ['codeVerifier', 'bad']]) test(`rejects invalid ${field}`, async () => { const action = ['state', 'codeChallenge'].includes(field) ? handler.getAuthURL : handler.getAccessToken; assert.equal((await action(event('POST', { ...input, [field]: value }))).statusCode, 400); });
 test('duplicate bearer headers are rejected before SDK calls', async () => { const request = event('GET', {}, { Authorization: 'Bearer fake-bearer' }); request.multiValueHeaders = { Authorization: ['Bearer first', 'Bearer second'] }; assert.equal((await handler.getCalendarEvents(request)).statusCode, 401); assert.equal(clients.length, 0); });
 test('missing server configuration fails safely', async () => { delete process.env.CLIENT_SECRET; const result = await handler.getAuthURL(event()); assert.equal(result.statusCode, 500); assert.equal(payload(result).error.code, 'SERVER_CONFIGURATION'); });
+
+for (const tokens of [null, {}, {access_token:'fake-bearer',expiry_date:1}, {access_token:'bad token',expiry_date:9999999999999}]) test('invalid or expired upstream token response fails safely',async()=>{tokenResult=tokens;const result=await handler.getAccessToken(event());assert.equal(result.statusCode,502);assert.doesNotMatch(result.body,/fake-bearer|bad token/);});
+test('invalid callback configuration fails safely',async()=>{process.env.OAUTH_REDIRECT_URIS='not-json';assert.equal((await handler.getAuthURL(event())).statusCode,500);});

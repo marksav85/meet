@@ -36,7 +36,7 @@ Frontend variables are public, bundled at build time:
   `https://marksav85.github.io/meet/` for current production hosting.
 
 Never place a client secret in frontend variables. Backend CLIENT_ID,
-CLIENT_SECRET and CALENDAR_ID retain the existing configuration mechanism.
+CLIENT_SECRET and CALENDAR_ID now resolve from backend deployment environment variables; local credential files are not read by the Phase 7A YAML.
 `OAUTH_REDIRECT_URIS` is a JSON array of exact approved callbacks. It defaults
 only to `["https://marksav85.github.io/meet/"]`. CORS derives approved origins
 from these callbacks; it rejects absent/unapproved Origin headers, and provides
@@ -67,8 +67,12 @@ Confirm Google Calendar permissions and OAuth publishing/verification status.
 API Gateway access/execution logs must not record request bodies or Authorization
 headers; Lambda's own diagnostics contain only operation, error code and status.
 
-In a later authorized phase, select a supported Lambda Node runtime and evaluate
-pinned Serverless v4 separately. Neither runtime nor dependencies changed here.
+Phase 7A now targets Node 24 and pinned Serverless 4.43.0 locally. This supersedes
+the original Phase 6 runtime/dependency deferral; live settings are unchanged.
 Eventually register the exact Cloudflare callback, configure its approved origin,
 and deploy the replacement only after testing, retaining the existing deployment
 until then. Do not reuse a testing client or secret for production.
+
+Phase 7A local modernization is documented in `auth-server/README.md` and
+`docs/2-development/review--backend--phase-7a.md`. The runtime/SDK/Framework
+configuration has been updated locally; live deployment remains unchanged.

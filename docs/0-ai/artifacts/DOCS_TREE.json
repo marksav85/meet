@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-11T12:00:32Z",
+  "generatedAt": "2026-10-11T12:52:18Z",
   "root": "docs",
   "summary": {
-    "totalFiles": 11,
-    "totalDirectories": 3,
+    "totalFiles": 14,
+    "totalDirectories": 4,
     "byExtension": {
       ".json": 4,
-      ".md": 6,
+      ".md": 9,
       ".tsx": 1
     }
   },
@@ -38,7 +38,7 @@
               "name": "ARTIFACT_PACK_MANIFEST.json",
               "relativePath": "docs/0-ai/artifacts/ARTIFACT_PACK_MANIFEST.json",
               "extension": ".json",
-              "sizeKB": 4.1,
+              "sizeKB": 4.4,
               "tier": "core",
               "riskIfMissing": "medium",
               "tags": [
@@ -50,7 +50,7 @@
               "name": "CONTEXT_SUMMARY.md",
               "relativePath": "docs/0-ai/artifacts/CONTEXT_SUMMARY.md",
               "extension": ".md",
-              "sizeKB": 7.0,
+              "sizeKB": 7.6,
               "tier": "core",
               "riskIfMissing": "medium",
               "tags": [
@@ -63,7 +63,7 @@
               "name": "DOCS_TREE.json",
               "relativePath": "docs/0-ai/artifacts/DOCS_TREE.json",
               "extension": ".json",
-              "sizeKB": 4.6,
+              "sizeKB": 5.8,
               "tier": "core",
               "riskIfMissing": "medium",
               "tags": [
@@ -116,7 +116,7 @@
           "name": "reference--artifacts--library-handoff.md",
           "relativePath": "docs/0-ai/reference--artifacts--library-handoff.md",
           "extension": ".md",
-          "sizeKB": 8.2,
+          "sizeKB": 8.3,
           "tier": "reference",
           "riskIfMissing": "medium",
           "tags": [
@@ -144,6 +144,18 @@
         },
         {
           "type": "file",
+          "name": "review--backend--phase-7a.md",
+          "relativePath": "docs/2-development/review--backend--phase-7a.md",
+          "extension": ".md",
+          "sizeKB": 11.0,
+          "tier": "on_demand",
+          "riskIfMissing": "medium",
+          "tags": [
+            "execution"
+          ]
+        },
+        {
+          "type": "file",
           "name": "workflow--playbook--integration.md",
           "relativePath": "docs/2-development/workflow--playbook--integration.md",
           "extension": ".md",
@@ -161,11 +173,42 @@
       "name": "README.md",
       "relativePath": "docs/README.md",
       "extension": ".md",
-      "sizeKB": 0.7,
+      "sizeKB": 0.9,
       "tier": "core",
       "riskIfMissing": "high",
       "tags": [
         "structure"
+      ]
+    },
+    {
+      "type": "directory",
+      "name": "project-management",
+      "relativePath": "docs/project-management",
+      "children": [
+        {
+          "type": "file",
+          "name": "project--execution-plan.md",
+          "relativePath": "docs/project-management/project--execution-plan.md",
+          "extension": ".md",
+          "sizeKB": 2.3,
+          "tier": "reference",
+          "riskIfMissing": "medium",
+          "tags": [
+            "context"
+          ]
+        },
+        {
+          "type": "file",
+          "name": "project--progress-log_001.md",
+          "relativePath": "docs/project-management/project--progress-log_001.md",
+          "extension": ".md",
+          "sizeKB": 1.4,
+          "tier": "reference",
+          "riskIfMissing": "medium",
+          "tags": [
+            "context"
+          ]
+        }
       ]
     }
   ]

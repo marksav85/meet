@@ -15,14 +15,12 @@ and all five `prompt--artifact--generate-*` generators (src-tree, docs-tree,
 project-overview, context-summary, snapshot). The integration module, root
 AGENTS.md, execution protocol, naming and metadata contracts also apply.
 
-The current user request authorizes generation of the full missing pack, including
-required companions. No previous manifest/freshness baseline exists. All members
-are regenerated; no artifact is acknowledged or skipped. Current HEAD is
-`010d71449a4de3b4c25900b9387a5e6d97e5ef49`, branch `main`; Playbook is pinned at
-`162a9d832acd73c9cb105ad5a5bc16b8135fb6ce`. Existing integration changes were
-uncommitted before this run and remain preserved. The manifest records dirty
-state; commit-only scope heads cannot capture those changes. The docs scope has
-no committed history yet. No tests/build were rerun for this artifact task.
+The Phase 7A request authorizes context refresh following local backend modernization.
+The previous six-member pack is committed at current HEAD `8c6cd7e` on main.
+Playbook remains pinned at `162a9d832acd73c9cb105ad5a5bc16b8135fb6ce`.
+Phase 7A changes are uncommitted; all six members are regenerated against that
+working tree and verified together. Library synchronization remains pending;
+no upload confirmation was supplied. The manifest records current provenance.
 
 ## Canonical schema boundaries and decisions
 
@@ -65,10 +63,10 @@ information, not secret credentials.
 | Repository-relative path | Role |
 | --- | --- |
 | `auth-server/handler.js` | CommonJS getAuthURL/getAccessToken/getCalendarEvents Lambda handlers; input/CORS validation and sanitized errors |
-| `auth-server/serverless.yml` | Framework 3 declaration, nodejs18.x runtime, eu-central-1, POST/GET/OPTIONS API Gateway routes and packaging exclusions |
-| `auth-server/package.json` | Independent auth-server 1.0.0 package; googleapis ^110.0.0; test script `node test/handler.test.js` |
+| `auth-server/serverless.yml` | Pinned Framework 4.43.0, nodejs24.x runtime, eu-central-1, POST/GET/OPTIONS API Gateway routes and packaging exclusions |
+| `auth-server/package.json` | Independent auth-server 1.0.0 package; googleapis 185.0.0; Serverless 4.43.0 dev pin; independent handler/SDK/config test scripts |
 | `auth-server/package-lock.json` | Backend dependency lock, not copied into the pack |
-| `auth-server/test/handler.test.js` | Built-in node:test with replaced Google SDK, 41 historical passing checks |
+| `auth-server/test/handler.test.js` | Built-in node:test with replaced Google SDK, 46 current passing checks (plus 3 SDK and 3 config tests) |
 | `auth-server/.gitignore` | Backend-local generated/secret exclusions |
 
 Backend uses backend-only credential configuration. No config/environment values,
@@ -86,16 +84,17 @@ counts, sizeKB rounding, controlled docs classification/tags, snapshot byte equa
 manifest SHA-256/byte sizes and consistency, and a sensitive-content scan.
 The summary is below 150 lines. The docs index includes all new outputs.
 
-Historical Phase 6 result: 97 frontend tests (88 unit/Gherkin plus 9 browser),
-41 backend tests and successful build. Historical subsequent integration result:
-88 frontend unit/Gherkin, 41 backend tests and successful build. Browser tests
-were not rerun in that integration. These are recorded reports, not fresh test
-execution during generation. Local OAuth was mocked; the live AWS API remains
-on old contracts and was not contacted or inspected.
+Fresh Phase 7A verification: 52 backend tests, 88 frontend unit/Gherkin tests,
+nine mock browser tests, successful build and zero backend audit vulnerabilities.
+Historical Phase 6 recorded 97 frontend and 41 backend; earlier integration
+recorded 88 unit/Gherkin and 41 backend. All auth is mocked; real Google/AWS and
+authenticated Serverless packaging remain unverified. See the Phase 7A review.
+Backend inventory additionally includes `.nvmrc`, README, two local guard scripts,
+SDK and config test files; service docs/scripts/tests are excluded from packaging.
 
 ## Library Synchronization Handoff — pending
 
-All six pack artifacts below are new and ready for upload after local generation
+All six pack artifacts below are updated and ready for upload after local generation
 validation. Upload together so ChatGPT Web can verify the pack. Destination:
 this Meet project's ChatGPT Web Library; Playbook defines no folder/collection
 name beyond that. Nothing has been uploaded or marked Library-confirmed.
@@ -119,7 +118,7 @@ and compile reusable template sources. No Predev bundle or bespoke combined
 bundle was generated for this backend modernization context. Audit reports are
 not mandatory pack members; this companion records the generation review.
 
-After Phase 7A, refresh overview/summary/backend companion and the full manifest;
+Phase 7A refresh is complete. After further backend changes, refresh overview/summary/backend companion and the full manifest;
 check trees and snapshots for source/config impacts. After Vite/Atatus changes,
 refresh overview/source tree/snapshot/summary. After UI redesign, refresh source
 tree/snapshot/summary; after Cloudflare deployment, refresh overview/summary and
