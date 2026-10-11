@@ -4,8 +4,16 @@ import "./index.css";
 import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import reportWebVitals from "./reportWebVitals";
-import * as atatus from "atatus-spa";
-atatus.config("dbae74abf0d6429eb503a74315e2cf78").install();
+import { prepareAuthentication, isMockMode } from "./api";
+
+// Capture and replace the callback URL before loading monitoring code. Keep
+// Atatus installed for this phase, but never instrument live authentication.
+const hadCallback = prepareAuthentication();
+if (isMockMode() && !hadCallback) {
+  import("atatus-spa").then((atatus) => {
+    atatus.config("dbae74abf0d6429eb503a74315e2cf78").install();
+  }).catch(() => { /* Monitoring availability must not affect the application. */ });
+}
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(

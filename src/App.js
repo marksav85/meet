@@ -6,13 +6,14 @@ import EventList from "./components/EventList";
 import NumberOfEvents from "./components/NumberOfEvents";
 import CityEventsChart from "./components/CityEventsChart";
 import EventGenresChart from "./components/EventGenresChart";
-import { extractLocations, getEvents } from "./api";
+import { extractLocations, getEvents, AuthError, startAuthentication } from "./api";
 import { InfoAlert, ErrorAlert, WarningAlert } from "./components/Alert";
 
 const App = () => {
   const [allEvents, setAllEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [canAuthorize, setCanAuthorize] = useState(false);
   const [reload, setReload] = useState(0);
   const [currentNOE, setCurrentNOE] = useState(32);
   const [currentCity, setCurrentCity] = useState("See all cities");
@@ -37,6 +38,7 @@ const App = () => {
     let active = true;
     setLoading(true);
     setLoadError("");
+    setCanAuthorize(false);
     setWarningAlert(navigator.onLine ? "" : "You are offline. Data may not be up-to-date");
     const load = async () => {
       try {
@@ -52,10 +54,11 @@ const App = () => {
           description: typeof event.description === "string" ? event.description : "",
         }));
         if (active) setAllEvents(normalized);
-      } catch {
+      } catch (error) {
         if (active) {
           setAllEvents([]);
-          setLoadError("Events could not be loaded. Please check your connection and try again.");
+          setLoadError(error instanceof AuthError ? error.message : "Events could not be loaded. Please check your connection and try again.");
+          setCanAuthorize(error instanceof AuthError && error.canAuthorize);
         }
       } finally {
         if (active) setLoading(false);
@@ -72,6 +75,14 @@ const App = () => {
     ? allEvents
     : allEvents.filter((event) => event.location === currentCity);
   const events = filteredEvents.slice(0, currentNOE);
+  const authorize = async () => {
+    setCanAuthorize(false);
+    try { await startAuthentication({ explicit: true }); }
+    catch (error) {
+      setLoadError(error instanceof AuthError ? error.message : "Authorization could not be started. Please try again.");
+      setCanAuthorize(error instanceof AuthError && error.canAuthorize);
+    }
+  };
   const retry = () => setReload((value) => value + 1);
 
   return (
@@ -93,7 +104,7 @@ const App = () => {
       {loading && <p role="status">Loading events…</p>}
       {loadError && (
         <div role="alert">
-          {loadError} <button onClick={retry}>Try again</button>
+          {loadError} {canAuthorize ? <button onClick={authorize}>Authorize with Google</button> : <button onClick={retry}>Try again</button>}
         </div>
       )}
       {!loading && !loadError && events.length === 0 && <p role="status">No events found.</p>}

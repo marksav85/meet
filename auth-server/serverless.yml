@@ -27,14 +27,15 @@ provider:
     CLIENT_ID: ${file(config.json):CLIENT_ID}
     CLIENT_SECRET: ${file(config.json):CLIENT_SECRET}
     CALENDAR_ID: ${file(config.json):CALENDAR_ID}
+    # Trusted deployment configuration; never accept arbitrary callback URLs.
+    # Add localhost only on the isolated testing stage prepared in a later phase.
+    OAUTH_REDIRECT_URIS: ${env:OAUTH_REDIRECT_URIS, '["https://marksav85.github.io/meet/"]'}
 
-# you can add packaging information here
-#package:
-#  patterns:
-#    - '!exclude-me.js'
-#    - '!exclude-me-dir/**'
-#    - include-me.js
-#    - include-me-dir/**
+# Explicit packaging exclusions protect local configuration and test fixtures.
+package:
+  patterns:
+    - '!config.json'
+    - '!test/**'
 
 functions:
   getAuthURL:
@@ -42,62 +43,25 @@ functions:
     events:
       - http:
           path: api/get-auth-url
-          method: get
-
+          method: post
+      - http:
+          path: api/get-auth-url
+          method: options
   getAccessToken:
     handler: handler.getAccessToken
     events:
       - http:
-          path: api/token/{code}
-          method: get
-
+          path: api/token
+          method: post
+      - http:
+          path: api/token
+          method: options
   getCalendarEvents:
     handler: handler.getCalendarEvents
     events:
       - http:
-          path: api/get-events/{access_token}
+          path: api/get-events
           method: get
-#      - websocket: $connect
-#      - s3: ${env:BUCKET}
-#      - schedule: rate(10 minutes)
-#      - sns: greeter-topic
-#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-#      - alexaSkill: amzn1.ask.skill.xx-xx-xx-xx
-#      - alexaSmartHome: amzn1.ask.skill.xx-xx-xx-xx
-#      - iot:
-#          sql: "SELECT * FROM 'some_topic'"
-#      - cloudwatchEvent:
-#          event:
-#            source:
-#              - "aws.ec2"
-#            detail-type:
-#              - "EC2 Instance State-change Notification"
-#            detail:
-#              state:
-#                - pending
-#      - cloudwatchLog: '/aws/lambda/hello'
-#      - cognitoUserPool:
-#          pool: MyUserPool
-#          trigger: PreSignUp
-#      - alb:
-#          listenerArn: arn:aws:elasticloadbalancing:us-east-1:XXXXXX:listener/app/my-load-balancer/50dc6c495c0c9188/
-#          priority: 1
-#          conditions:
-#            host: example.com
-#            path: /hello
-
-#    Define function environment variables here
-#    environment:
-#      variable2: value2
-
-# you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
+      - http:
+          path: api/get-events
+          method: options
