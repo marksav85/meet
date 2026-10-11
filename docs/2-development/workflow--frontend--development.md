@@ -192,3 +192,42 @@ The production Vite/PWA build passes, with JS 578.45 kB / 162.58 kB gzip.
 The >500 kB chunk warning remains. Backend, OAuth and PWA implementation, Playbook
 pin and unrelated local migration work are preserved. No deployment, live OAuth,
 calendar changes, commit or push occurred.
+
+## Calendar event categories
+
+Category names and chart colors are centralized in `src/event-categories.js`.
+For each upcoming Google Calendar event, include **exactly one** of these lines
+in its description, on its own line (choose the event's category):
+
+```text
+Category: Web Development
+Category: AI & Emerging Tech
+Category: UX & Creative Tech
+Category: Cloud & DevOps
+Category: Gaming & Interactive
+Category: Startups & Networking
+```
+
+Do not paste all six lines into one event. For example:
+
+```text
+Category: AI & Emerging Tech
+
+A practical workshop exploring responsible AI applications.
+```
+
+Use these canonical spellings for calendar authoring. The parser tolerates case,
+surrounding whitespace, CRLF, common Calendar HTML line breaks and `&amp;`.
+Missing, unknown or multiple category markers leave the event uncategorized;
+it remains visible in the event list and city chart but contributes no pie slice.
+Pie percentages apply to categorized events only. Category assignment does not
+infer titles or change API contracts, city filtering or event-count limits.
+
+Existing React/JavaScript mock fixtures receive an explicit Web Development
+marker at export, retaining their original titles and description text. No live
+calendar entries were changed. No category-filter UI or redesign was introduced.
+
+Category verification: 111 unit/component/Gherkin tests and nine mock browser
+tests passed (120 total), including extraction, unknown/ambiguous markers,
+category counts and chart updates. Production Vite/PWA build and
+`git diff --check` passed; the existing >500 kB chunk warning remains.

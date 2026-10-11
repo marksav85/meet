@@ -34,13 +34,25 @@ test("city chart responds when locations change without event changes", () => {
   expect(JSON.parse(screen.getByLabelText("City series").textContent)).toEqual([{ city: "Paris", count: 1 }]);
 });
 test("genre values update on same-length replacements, count changes, and empty events", () => {
-  const view = render(<EventGenresChart events={[{ summary: "React" }, { summary: "JavaScript" }]} />);
-  const values = () => JSON.parse(screen.getByLabelText("Genre series").textContent).map((item) => item.value);
-  expect(values()).toEqual([1, 1, 0, 0, 0]);
-  view.rerender(<EventGenresChart events={[{ summary: "Node" }, { summary: "Node" }]} />);
-  expect(values()).toEqual([0, 0, 2, 0, 0]);
-  view.rerender(<EventGenresChart events={[{ summary: "Angular" }]} />);
-  expect(values()).toEqual([0, 0, 0, 0, 1]);
+  const event = (name) => ({ description: `Category: ${name}` });
+  const view = render(<EventGenresChart events={[event("Web Development"), event("AI & Emerging Tech")]} />);
+  const series = () => JSON.parse(screen.getByLabelText("Genre series").textContent);
+  const values = () => series().map((item) => item.value);
+  expect(series().map((item) => item.name)).toEqual(["Web Development", "AI & Emerging Tech", "UX & Creative Tech", "Cloud & DevOps", "Gaming & Interactive", "Startups & Networking"]);
+  expect(values()).toEqual([1, 1, 0, 0, 0, 0]);
+  view.rerender(<EventGenresChart events={[event("Cloud & DevOps"), event("Cloud & DevOps")]} />);
+  expect(values()).toEqual([0, 0, 0, 2, 0, 0]);
+  view.rerender(<EventGenresChart events={[event("Gaming & Interactive")]} />);
+  expect(values()).toEqual([0, 0, 0, 0, 1, 0]);
   view.rerender(<EventGenresChart events={[]} />);
-  expect(values()).toEqual([0, 0, 0, 0, 0]);
+  expect(values()).toEqual([0, 0, 0, 0, 0, 0]);
+});
+test("uncategorized events stay out of the pie and markers take precedence over titles", () => {
+  render(<EventGenresChart events={[
+    { summary: "React", description: "Category: AI & Emerging Tech" },
+    { summary: "React", description: "Category: Unknown" },
+    { summary: "JavaScript" },
+    { description: "Category: Web Development\nCategory: Cloud & DevOps" },
+  ]} />);
+  expect(JSON.parse(screen.getByLabelText("Genre series").textContent).map((item) => item.value)).toEqual([0, 1, 0, 0, 0, 0]);
 });

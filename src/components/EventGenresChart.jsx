@@ -1,12 +1,12 @@
 import { ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
-const EventGenresChart = ({ events }) => {
-  const genres = ["React", "JavaScript", "Node", "jQuery", "Angular"];
-  const colors = ["#DD0000", "#00DD00", "#0000DD", "#DDDD00", "#DD00DD"];
+import { EVENT_CATEGORIES, getEventCategory } from "../event-categories";
 
-  const data = genres.map((genre) => ({
-    name: genre,
-    value: events.filter((event) => typeof event.summary === "string" && event.summary.includes(genre)).length,
+const EventGenresChart = ({ events }) => {
+  const categories = events.map(getEventCategory);
+  const data = EVENT_CATEGORIES.map(({ name }) => ({
+    name,
+    value: categories.filter((category) => category === name).length,
   }));
 
   const renderCustomizedLabel = ({
@@ -29,7 +29,7 @@ const EventGenresChart = ({ events }) => {
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
       >
-        {`${genres[index]} ${(percent * 100).toFixed(0)}%`}
+        {`${data[index].name} ${(percent * 100).toFixed(0)}%`}
       </text>
     ) : null;
   };
@@ -46,7 +46,7 @@ const EventGenresChart = ({ events }) => {
           outerRadius={130}
         >
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={colors[index]} />
+            <Cell key={`cell-${index}`} fill={EVENT_CATEGORIES[index].color} />
           ))}
         </Pie>
 

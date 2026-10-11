@@ -1,3 +1,5 @@
+import { EVENT_CATEGORIES } from "./event-categories";
+
 // src/mock-data.js
 
 const mockData = [
@@ -1438,4 +1440,9 @@ const mockData = [
   },
 ];
 
-export default mockData;
+// Legacy React/JavaScript fixtures are web-development events. Add explicit
+// metadata here so production categorization never needs title inference.
+export default mockData.map((event) => ({
+  ...event,
+  description: `Category: ${EVENT_CATEGORIES[0].name}\n\n${event.description}`,
+}));

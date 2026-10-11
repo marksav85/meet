@@ -74,7 +74,7 @@ describe("local mock-data browser behavior", () => {
   });
   test("charts render real SVGs and update when the count changes", async () => {
     expect(await page.$$eval(".recharts-wrapper > svg.recharts-surface", (items) => items.length)).toBe(2);
-    expect(await page.$$eval(".recharts-legend-item-text", (items) => items.map((item) => item.textContent))).toEqual(["React", "JavaScript", "Node", "jQuery", "Angular"]);
+    expect(await page.$$eval(".recharts-legend-item-text", (items) => items.map((item) => item.textContent))).toEqual(["Web Development", "AI & Emerging Tech", "UX & Creative Tech", "Cloud & DevOps", "Gaming & Interactive", "Startups & Networking"]);
     const before = await page.$eval(".recharts-scatter", (element) => element.innerHTML);
     const input = await page.$("#event-number input");
     await input.click({ clickCount: 3 });
