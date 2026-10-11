@@ -1,75 +1,51 @@
-# Meet App — Codex guidance
+# Meet — development guidance
 
-Meet is an existing JavaScript React 18 / Vite frontend (`src/`, `public/`) with
-an independent Node.js Google OAuth / AWS Lambda backend (`auth-server/`).
-Retain these boundaries. Do not introduce TypeScript, Next.js, a new framework,
-or dependencies because a Playbook example uses them.
+Meet has a React 18 / JavaScript Vite frontend (`src/`, `public/`) and an independent
+Node.js 24 Lambda backend (`auth-server/`). Preserve those boundaries and current
+OAuth/API contracts. Inspect Git status and relevant operational docs before work;
+preserve unrelated local changes. Read [README.md](README.md) for current status.
 
-## Playbook discovery and authority
+Use the user's request as the scope. Do not introduce TypeScript, new frameworks,
+dependencies, redesigns or later phases without authorization. Do not commit, push,
+deploy, change cloud configuration or run live OAuth unless specifically authorized.
+Protect the existing `/dev` deployment. Never read or print credentials, tokens,
+resolved secret-bearing deployment state or ignored credential/export contents.
 
-The read-only `playbook/` Git submodule is pinned by the parent Gitlink. Never
-edit its files or advance its revision without explicit approval. Root
-`AGENTS.md` is discovered by Codex for this project; Playbook's own AGENTS.md
-applies to maintenance inside that separate repository, not to Meet source.
+## Validation
 
-Before a task, inspect current Git status and relevant project documents,
-including `PHASE6_REPORT.md`, `AUTHENTICATION.md`, and
-`docs/2-development/workflow--playbook--integration.md`. Preserve local work.
-Use the current user request as the execution scope; review completed code
-against standards without automatically rewriting it.
+- `npm test`: frontend unit/component/Gherkin tests.
+- `npm run test:browser`: browser tests against `VITE_DATA_MODE=mock npm start`;
+  external requests are blocked. Matching Puppeteer Chrome must be installed.
+- `npm run build`: Vite/PWA build; it is not a lint check.
+- `npm test --prefix auth-server`: offline backend tests.
+- `npm run check:local --prefix auth-server`: offline backend config checks.
+- `./scripts/setup-playbook.sh --check`: read-only pin/sparse check.
+- `git diff --check`: whitespace check.
 
-Read the applicable canonical authorities under `playbook/docs/templates/`:
+Run checks appropriate to the change and report actual results. There is no
+standalone lint/formatter/type-check command. Frontend Jest roots are `src/`;
+Vite watching and formatter exclusions protect Playbook. Never import its examples
+into runtime source. See [frontend workflow](docs/2-development/workflow--frontend--development.md),
+[backend workflow](auth-server/README.md) and [authentication](AUTHENTICATION.md).
 
-- `0-ai/system/system--execution--chatgpt-codex-protocol.md`: bounded review,
-  implementation and completion evidence. A direct user instruction to implement
-  authorizes that task; do not ask again solely for the protocol review gate.
-- `2-development/2-development-index.md`: locate relevant development material;
-  verify actual paths because index entries may be stale or placeholders.
-- `2-development/dev-1--project-setup/dev-1--controller--project-setup.md`:
-  setup scope, selected modules, validation, deferrals and lifecycle boundaries.
-- `2-development/dev-1--project-setup/modules/playbook-integration/module--dev-1--playbook-submodule-integration.md`:
-  submodule setup, sparse checkout, pins and updates.
-- `2-development/dev-1--project-setup/audits/audit--dev-1--application-foundation.md`:
-  evidence checklist when foundation review is requested; technical checks do
-  not grant lifecycle approval.
-- For authored docs, `0-ai/system/system--docs--naming-contract.md` and
-  `0-ai/system/system--docs--metadata-contract.md`: keep project outputs outside
-  Playbook, update the local docs index, preserve historical reports.
-- For planning/handoff work,
-  `0-project-management/project-management--controller.md` and
-  `0-project-management/templates/template--project-execution-plan.md`.
+## Selective Playbook use
 
-Read only relevant controllers/modules. Do not apply Next.js starter, CMS,
-Cloudflare Worker, localisation, design or deployment instructions unless the
-current task selects them. Unavailable or conflicting guidance must be reported;
-do not fetch a newer Playbook automatically or invent a missing module.
+`playbook/` is read-only and pinned by the parent Gitlink. Do not edit it or advance
+its revision without explicit approval. See [setup/update instructions](docs/2-development/workflow--playbook--integration.md).
+Consult only relevant guidance under `playbook/docs/templates/`:
 
-## Modernization boundaries
+- `0-ai/system/system--execution--chatgpt-codex-protocol.md` for bounded execution.
+- `2-development/2-development-index.md` and the applicable setup controller/module
+  when setup work is requested; verify paths before use.
+- `0-ai/system/system--docs--naming-contract.md` and
+  `system--docs--metadata-contract.md` for authored documentation.
 
-Phases 5, 6 and 7A are committed. The owner reports successful live OAuth and
-Calendar integration against the isolated `localtest` backend. The original
-`/dev` deployment remains protected. Frontend production cutover requires
-separate authorization; do not run live OAuth as a local regression test.
-No commits, pushes, deployments, credential changes, dependency upgrades, or
-later phases without authorization. Never print secrets or raw SDK/request data.
+A direct implementation request authorizes its scope; do not add a confirmation
+gate solely from a generic workflow. Small tasks do not require full planning,
+audit or artifact procedures. Next.js/Worker examples are not Meet requirements.
 
-## Validation and tooling
-
-Use installed tools; no automatic installs/upgrades or package-manager hooks that
-update Playbook. Vite builds from root `index.html` and frontend imports; Jest discovery is scoped
-to `src/`. Playbook is excluded from formatter discovery and Vite watching;
-never import it into runtime source. Backend tests run independently.
-
-- `./scripts/setup-playbook.sh --check`: read-only pin/sparse/cleanliness check.
-- `npm test`:
-  mocked frontend unit/Gherkin tests.
-- `npm test --prefix auth-server`: mocked backend tests.
-- `npm run build`: production Vite/PWA build; this is not a lint check.
-- `npm run test:browser`: browser tests require the local mock server and external request blocking;
-  run only when useful for the change. Do not start live OAuth mode for them.
-- `git diff --check`: patch whitespace check.
-
-There is currently no independent backend lint/formatter or type-check command.
-Do not claim those checks ran. Report actual checks, warnings, exceptions and
-remaining live verification separately. New reusable standards remain in the
-canonical Playbook; project decisions and evidence belong in Meet documentation.
+AI context artifacts are optional generated ChatGPT handoff outputs, not tracked
+operational documentation. When explicitly needed, use the canonical artifact
+controller/spec/generators and regenerate a complete verified pack. Keep outputs
+local and Git-ignored; confirm that exclusion before generating them. Never copy
+secrets or ignored exports into a handoff. No artifact generation is automatic.
