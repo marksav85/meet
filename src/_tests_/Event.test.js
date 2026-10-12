@@ -60,3 +60,18 @@ describe("<Event /> component", () => {
     expect(eventDetails).not.toBeInTheDocument();
   });
 });
+
+test("Calendar HTML descriptions display as text with the canonical category badge", async () => {
+  const view = render(<Event event={{ id: "html", summary: "Workshop", description: "<div>Category: Cloud &amp; DevOps</div><p>Bring your laptop.</p>" }} />);
+  expect(view.getByText("Cloud & DevOps", { selector: ".category-badge" })).toBeVisible();
+  await userEvent.setup().click(view.getByRole("button", { name: "Show details" }));
+  expect(view.getByText("Bring your laptop.")).toBeVisible();
+  expect(view.container.querySelector(".event_details").textContent).not.toContain("<div>");
+});
+
+test("unknown category markers remain readable without assigning an invented category", async () => {
+  const view = render(<Event event={{ id: "unknown", summary: "Workshop", description: "Category: Other\nMeet the community." }} />);
+  expect(view.getByText("Uncategorized", { selector: ".category-badge" })).toBeVisible();
+  await userEvent.setup().click(view.getByRole("button", { name: "Show details" }));
+  expect(view.container.querySelector(".event_details")).toHaveTextContent("Category: Other");
+});

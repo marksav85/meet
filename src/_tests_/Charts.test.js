@@ -9,8 +9,8 @@ jest.mock("recharts", () => {
   const Container = ({ children }) => <div>{children}</div>;
   const Empty = () => null;
   return {
-    ResponsiveContainer: Container, ScatterChart: Container, PieChart: Container,
-    Scatter: ({ data }) => <output aria-label="City series">{JSON.stringify(data)}</output>,
+    ResponsiveContainer: Container, BarChart: ({ children, data }) => <div><output aria-label="City series">{JSON.stringify(data)}</output>{children}</div>, PieChart: Container,
+    Bar: Empty,
     Pie: ({ data }) => <output aria-label="Genre series">{JSON.stringify(data)}</output>,
     Cell: Empty, Legend: Empty, XAxis: Empty, YAxis: Empty, CartesianGrid: Empty, Tooltip: Empty,
   };
@@ -21,11 +21,12 @@ test("city counts update on same-length filtering, count changes, and empty even
   const data = () => JSON.parse(screen.getByLabelText("City series").textContent);
   expect(data()).toEqual([{ city: "London", count: 1 }, { city: "Berlin", count: 1 }]);
   view.rerender(<CityEventsChart allLocations={allLocations} events={[{ location: allLocations[1] }, { location: allLocations[1] }]} />);
-  expect(data()).toEqual([{ city: "London", count: 0 }, { city: "Berlin", count: 2 }]);
+  expect(data()).toEqual([{ city: "Berlin", count: 2 }]);
   view.rerender(<CityEventsChart allLocations={allLocations} events={[{ location: allLocations[1] }]} />);
-  expect(data()[1].count).toBe(1);
+  expect(data()[0].count).toBe(1);
   view.rerender(<CityEventsChart allLocations={allLocations} events={[]} />);
-  expect(data().map((item) => item.count)).toEqual([0, 0]);
+  expect(screen.getByText("No city data to display.")).toBeVisible();
+  expect(screen.queryByLabelText("City series")).not.toBeInTheDocument();
 });
 test("city chart responds when locations change without event changes", () => {
   const events = [{ location: "Paris" }];

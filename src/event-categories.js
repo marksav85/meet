@@ -1,11 +1,11 @@
 // Names are the canonical values used in Google Calendar descriptions.
 export const EVENT_CATEGORIES = [
-  { name: "Web Development", color: "#DD0000" },
-  { name: "AI & Emerging Tech", color: "#00DD00" },
-  { name: "UX & Creative Tech", color: "#0000DD" },
-  { name: "Cloud & DevOps", color: "#DDDD00" },
-  { name: "Gaming & Interactive", color: "#DD00DD" },
-  { name: "Startups & Networking", color: "#00AAAA" },
+  { name: "Web Development", color: "var(--category-web)" },
+  { name: "AI & Emerging Tech", color: "var(--category-ai)" },
+  { name: "UX & Creative Tech", color: "var(--category-ux)" },
+  { name: "Cloud & DevOps", color: "var(--category-cloud)" },
+  { name: "Gaming & Interactive", color: "var(--category-gaming)" },
+  { name: "Startups & Networking", color: "var(--category-startups)" },
 ];
 
 export const getEventCategory = (event) => {

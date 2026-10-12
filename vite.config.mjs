@@ -10,7 +10,7 @@ export default defineConfig({
     filename: 'service-worker.js',
     devOptions: { enabled: false },
     workbox: {
-      globPatterns: ['**/*.{js,css,html,ico,png,json}'],
+      globPatterns: ['**/*.{js,css,html,ico,png,json,ttf}'],
       navigateFallback: '/index.html',
       navigateFallbackDenylist: [/\?(?:.*&)?(?:code|state|error)=/, /^\/_/],
       skipWaiting: true,

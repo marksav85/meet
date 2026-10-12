@@ -23,8 +23,8 @@ test("the earliest 50 events are capped before city/category filtering and share
   render(<App />);
   await screen.findAllByRole("button", { name: "Show details" });
   const list = screen.getByRole("list", { name: "Events" });
-  const selector = screen.getByRole("combobox", { name: "Event category" });
-  expect(within(selector).getAllByRole("option").map((option) => option.textContent))
+  const selector = screen.getByRole("group", { name: "Event category" });
+  expect(within(selector).getAllByRole("button").map((button) => button.getAttribute("aria-label")))
     .toEqual(["All Categories", ...EVENT_CATEGORIES.map(({ name }) => name)]);
   const assertResults = (ids) => {
     expect(within(list).queryAllByRole("listitem").map((item) => within(item).getByRole("heading").textContent))
@@ -36,18 +36,18 @@ test("the earliest 50 events are capped before city/category filtering and share
   };
   assertResults(Array.from({ length: 50 }, (_, i) => i));
   expect(screen.queryByRole("textbox", { name: "Number of events" })).not.toBeInTheDocument();
-  fireEvent.change(selector, { target: { value: cloud } });
+  fireEvent.click(within(selector).getByRole("button", { name: cloud }));
   assertResults(Array.from({ length: 10 }, (_, i) => i + 40));
   const user = userEvent.setup();
   await user.type(screen.getByPlaceholderText("Search for a city"), "Berlin");
-  await user.click(screen.getByText("Berlin", { selector: ".suggestions li" }));
+  await user.click(screen.getByRole("button", { name: "Berlin" }));
   assertResults(Array.from({ length: 10 }, (_, i) => i + 40));
-  fireEvent.change(selector, { target: { value: web } });
+  fireEvent.click(within(selector).getByRole("button", { name: web }));
   assertResults(Array.from({ length: 15 }, (_, i) => i + 25));
-  fireEvent.change(selector, { target: { value: EVENT_CATEGORIES[1].name } });
+  fireEvent.click(within(selector).getByRole("button", { name: EVENT_CATEGORIES[1].name }));
   assertResults([]);
   expect(screen.getByText("No events found.")).toBeVisible();
-  fireEvent.change(selector, { target: { value: "All Categories" } });
+  fireEvent.click(within(selector).getByRole("button", { name: "All Categories" }));
   assertResults(Array.from({ length: 25 }, (_, i) => i + 25));
   await user.click(screen.getByPlaceholderText("Search for a city"));
   await user.click(screen.getByText("See all cities", { selector: ".suggestions b" }));
@@ -58,9 +58,9 @@ test("All Categories retains uncategorized events and reports singular and zero 
   getEvents.mockResolvedValueOnce([makeEvent(1, "Berlin")]);
   render(<App />);
   expect(await screen.findByText("1 upcoming event found")).toBeVisible();
-  fireEvent.change(screen.getByRole("combobox", { name: "Event category" }), { target: { value: EVENT_CATEGORIES[0].name } });
+  fireEvent.click(screen.getByRole("button", { name: EVENT_CATEGORIES[0].name }));
   expect(screen.getByText("0 upcoming events found")).toBeVisible();
-  fireEvent.change(screen.getByRole("combobox", { name: "Event category" }), { target: { value: "All Categories" } });
+  fireEvent.click(screen.getByRole("button", { name: "All Categories" }));
   expect(screen.getByText("Meeting 1")).toBeVisible();
 });
 

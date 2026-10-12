@@ -30,3 +30,6 @@ docs/oAuth-client--credentials
 
 /dist
 /.vite
+
+# design
+design-reference

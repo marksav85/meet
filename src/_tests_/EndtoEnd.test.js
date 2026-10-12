@@ -2,6 +2,7 @@ import puppeteer from "puppeteer";
 
 describe("local mock-data browser behavior", () => {
   let browser;
+  let context;
   let page;
   let errors;
   beforeAll(async () => {
@@ -9,19 +10,22 @@ describe("local mock-data browser behavior", () => {
   });
   beforeEach(async () => {
     errors = [];
-    page = await browser.newPage();
+    context = await browser.createBrowserContext();
+    page = await context.newPage();
+    await page.setViewport({ width: 1330, height: 1000 });
+    await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "light" }]);
     await page.setRequestInterception(true);
     page.on("request", (request) => {
       const url = new URL(request.url());
       if (["localhost", "127.0.0.1"].includes(url.hostname) || ["data:", "blob:"].includes(url.protocol)) request.continue();
-      else request.abort(); // Includes external fonts, Google, and AWS.
+      else request.abort(); // Includes Google and AWS; all tests remain offline.
     });
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto(process.env.MEET_BROWSER_URL || "http://localhost:3000/", { waitUntil: "networkidle0" });
     await page.waitForSelector(".event");
   });
   afterEach(async () => {
-    if (page) await page.close();
+    if (context) await context.close();
     expect(errors).toEqual([]);
   });
   afterAll(async () => {
@@ -30,6 +34,9 @@ describe("local mock-data browser behavior", () => {
   const searchBerlin = async () => {
     await page.click(".city");
     await page.type(".city", "Berlin");
+  };
+  const selectCategory = async (name) => {
+    await page.$eval(`#category-filter button[aria-label="${name}"]`, (button) => button.click());
   };
   test("shows events from all cities by default", async () => {
     expect(await page.$$eval(".event", (events) => events.length)).toBe(35);
@@ -41,63 +48,92 @@ describe("local mock-data browser behavior", () => {
     await searchBerlin();
     expect(await page.$$eval(".suggestions li", (items) => items.map((item) => item.textContent))).toEqual(["Berlin, Germany", "See all cities"]);
   });
-  test("selecting Berlin filters the entire event list", async () => {
+  test("keyboard city selection and All Cities reset preserve filtering", async () => {
     await searchBerlin();
-    await page.click(".suggestions li");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
     await page.waitForFunction(() => document.querySelectorAll(".event").length === 17);
     expect(await page.$$eval(".event_location", (items) => items.map((item) => item.textContent))).toEqual(Array(17).fill("Berlin, Germany"));
+    await page.click(".all-cities-btn");
+    await page.waitForFunction(() => document.querySelectorAll(".event").length === 35);
+    expect(await page.$eval(".city", (input) => input.value)).toBe("");
   });
-  test("category selector filters and restores the list", async () => {
-    expect(await page.$$eval("#category-filter option", (options) => options.length)).toBe(7);
-    await page.select("#category-filter select", "Cloud & DevOps");
+  test("category pills filter and restore the list", async () => {
+    expect(await page.$$eval("#category-filter button", (buttons) => buttons.length)).toBe(7);
+    await selectCategory("Cloud & DevOps");
     await page.waitForFunction(() => document.querySelectorAll(".event").length === 0);
     expect(await page.$eval(".App", (app) => app.textContent)).toContain("No events found.");
-    await page.select("#category-filter select", "Web Development");
+    expect(await page.$eval("#results-count", (element) => element.textContent)).toBe("0 upcoming events found");
+    await selectCategory("Web Development");
     await page.waitForFunction(() => document.querySelectorAll(".event").length === 35);
     await searchBerlin();
-    await page.click(".suggestions li");
+    await page.click(".suggestions button");
     await page.waitForFunction(() => document.querySelectorAll(".event").length === 17);
-    await page.select("#category-filter select", "All Categories");
+    await selectCategory("All Categories");
     expect(await page.$$eval(".event", (events) => events.length)).toBe(17);
+    expect(await page.$eval('#category-filter button[aria-label="All Categories"]', (button) => button.getAttribute("aria-pressed"))).toBe("true");
   });
   test("details start collapsed", async () => {
     expect(await page.$(".event .event_details")).toBeNull();
     expect(await page.$eval(".details-btn", (button) => button.textContent)).toBe("Show details");
   });
-  test("details can be expanded", async () => {
-    await page.click(".details-btn");
+  test("details expand and collapse with keyboard support", async () => {
+    await page.focus(".details-btn");
+    await page.keyboard.press("Enter");
     await page.waitForSelector(".event .event_details", { visible: true });
     expect(await page.$eval(".event_details", (element) => element.textContent.trim())).not.toBe("");
-    expect(await page.$eval(".details-btn", (button) => button.textContent)).toBe("Hide details");
-  });
-  test("expanded details can be collapsed", async () => {
-    await page.click(".details-btn");
-    await page.waitForSelector(".event .event_details", { visible: true });
-    await page.click(".details-btn");
+    expect(await page.$eval(".details-btn", (button) => button.getAttribute("aria-expanded"))).toBe("true");
+    await page.keyboard.press("Enter");
     await page.waitForSelector(".event .event_details", { hidden: true });
     expect(await page.$(".event .event_details")).toBeNull();
   });
-  test("charts render real SVGs and update when city changes", async () => {
+  test("donut and horizontal city bars reflect filtered event data", async () => {
     expect(await page.$$eval(".recharts-wrapper > svg.recharts-surface", (items) => items.length)).toBe(2);
-    expect(await page.$$eval(".recharts-legend-item-text", (items) => items.map((item) => item.textContent))).toEqual(["Web Development", "AI & Emerging Tech", "UX & Creative Tech", "Cloud & DevOps", "Gaming & Interactive", "Startups & Networking"]);
-    const before = await page.$eval(".recharts-scatter", (element) => element.innerHTML);
+    expect(await page.$eval(".donut-center strong", (element) => element.textContent)).toBe("35");
+    expect(await page.$eval(".category-legend", (element) => element.textContent)).toContain("35 events100%");
+    expect(await page.$eval(".city-chart", (element) => element.getAttribute("aria-label"))).toBe("Events by city: London: 18, Berlin: 17");
     await searchBerlin();
-    await page.click(".suggestions li");
+    await page.click(".suggestions button");
     await page.waitForFunction(() => document.querySelectorAll(".event").length === 17);
-    expect(await page.$eval("#results-count", (element) => element.textContent)).toBe("17 upcoming events found");
-    await page.waitForFunction((previous) => document.querySelector(".recharts-scatter").innerHTML !== previous, {}, before);
+    expect(await page.$eval(".donut-center strong", (element) => element.textContent)).toBe("17");
+    expect(await page.$$eval(".city-bar-row", (rows) => rows.length)).toBe(1);
+    expect(await page.$eval(".city-chart", (element) => element.textContent)).toContain("Berlin17 events");
+    await page.hover(".city-bar-row rect");
+    await page.waitForFunction(() => document.querySelector(".city-chart .recharts-tooltip-wrapper")?.textContent.includes("17"));
+    expect(await page.$eval(".city-chart .recharts-tooltip-wrapper", (element) => element.textContent)).toContain("17");
   });
-  test("city chart counts agree with the filtered cards", async () => {
-    await searchBerlin();
-    await page.click(".suggestions li");
-    await page.waitForFunction(() => [...document.querySelectorAll(".event_location")].every((item) => item.textContent === "Berlin, Germany"));
-    // Allow the existing Recharts transition to settle before inspecting its tooltip.
-    await new Promise((resolve) => setTimeout(resolve, 1700));
-    await page.hover(".recharts-scatter-symbol");
-    expect(await page.$eval(".recharts-tooltip-wrapper", (element) => element.textContent)).toContain("Number of Events : 0");
-    const points = await page.$$(".recharts-scatter-symbol");
-    await points[1].hover();
-    expect(await page.$eval(".recharts-tooltip-wrapper", (element) => element.textContent)).toContain("Number of Events : 17");
+  test("system preference, keyboard toggle and saved choice survive reload", async () => {
+    await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "dark" }]);
+    await page.reload({ waitUntil: "networkidle0" });
+    await page.waitForSelector('.theme-toggle[aria-label="Switch to light mode"]');
+    expect(await page.evaluate(() => localStorage.getItem("meet-theme"))).toBeNull();
+    await page.focus(".theme-toggle");
+    await page.keyboard.press("Space");
+    await page.waitForFunction(() => document.documentElement.dataset.theme === "light");
+    expect(await page.evaluate(() => localStorage.getItem("meet-theme"))).toBe("light");
+    await page.reload({ waitUntil: "networkidle0" });
+    await page.waitForSelector('.theme-toggle[aria-label="Switch to dark mode"]');
+    expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe("light");
+    await page.click(".theme-toggle");
+    await page.reload({ waitUntil: "networkidle0" });
+    expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe("dark");
   });
-
+  test.each(["light", "dark"])("%s theme remains responsive and usable at desktop, tablet and mobile widths", async (theme) => {
+    if (theme === "dark") await page.click(".theme-toggle");
+    for (const width of [1330, 820, 390, 320]) {
+      await page.setViewport({ width, height: 1000 });
+      await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      expect(await page.$eval(".App", (element) => getComputedStyle(element).color)).not.toBe(await page.evaluate(() => getComputedStyle(document.body).backgroundColor));
+    }
+    await page.click(".city");
+    await page.type(".city", "Berlin");
+    await page.click(".suggestions button");
+    await page.waitForFunction(() => document.querySelectorAll(".event").length === 17);
+    await page.click(".details-btn");
+    await page.waitForSelector(".event_details", { visible: true });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await selectCategory("Cloud & DevOps");
+    expect(await page.$eval("#results-count", (element) => element.textContent)).toBe("0 upcoming events found");
+  });
 });

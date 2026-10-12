@@ -1,8 +1,11 @@
 import "./App.css";
-import { EVENT_CATEGORIES, getEventCategory } from "./event-categories";
+import { getEventCategory } from "./event-categories";
 import { useEffect, useMemo, useState } from "react";
 import EventErrorBoundary from "./components/EventErrorBoundary";
 import CitySearch from "./components/CitySearch";
+import CategoryFilter from "./components/CategoryFilter";
+import ThemeToggle from "./components/ThemeToggle";
+import Icon from "./components/Icon";
 import EventList from "./components/EventList";
 import CityEventsChart from "./components/CityEventsChart";
 import EventGenresChart from "./components/EventGenresChart";
@@ -98,39 +101,61 @@ const App = () => {
   };
   const retry = () => setReload((value) => value + 1);
 
+  const cityEvents = upcomingEvents.filter((event) => currentCity === "See all cities" || event.location === currentCity);
+  const cityName = currentCity === "See all cities" ? "all cities" : currentCity.split(/, | - /)[0];
+
   return (
-    <div className="App">
-      <div className="alerts-container">
-        {infoAlert.length ? <InfoAlert text={infoAlert} /> : null}
-        {warningAlert ? <WarningAlert text={warningAlert} /> : null}
-      </div>
-      <CitySearch
-        allLocations={allLocations}
-        setCurrentCity={setCurrentCity}
-        setInfoAlert={setInfoAlert}
-      />
-      <div id="category-filter">
-        <select aria-label="Event category" value={currentCategory} onChange={(event) => setCurrentCategory(event.target.value)}>
-          <option>All Categories</option>
-          {EVENT_CATEGORIES.map(({ name }) => <option key={name}>{name}</option>)}
-        </select>
-      </div>
-      {loading && <p role="status">Loading events…</p>}
+    <main className="App">
+      <section className="hero" aria-labelledby="hero-title">
+        <div className="brand-row">
+          <div className="brand"><span className="brand-mark" aria-hidden="true">m</span><span>Meet</span></div>
+          <ThemeToggle />
+        </div>
+        <span className="hero-eyebrow"><span className="status-dot" />Discover. Connect. Create.</span>
+        <h1 id="hero-title">Discover tech gatherings<br className="hero-break" /> across the globe</h1>
+        <p>Curated community summits, engineering exchanges, and developer workshops. Purely exploratory and open to all builders.</p>
+      </section>
+      <section className="filter-panel" aria-label="Event filters">
+        <div className="filter-row">
+          <CitySearch allLocations={allLocations} setCurrentCity={setCurrentCity} setInfoAlert={setInfoAlert} />
+          {!loading && !loadError && <p role="status" id="results-count"><span className="status-dot" aria-hidden="true" />{events.length} upcoming {events.length === 1 ? "event" : "events"} found</p>}
+        </div>
+        <CategoryFilter events={cityEvents} currentCategory={currentCategory} setCurrentCategory={setCurrentCategory} />
+        <div className="alerts-container">
+          {infoAlert.length ? <InfoAlert text={infoAlert} /> : null}
+          {warningAlert ? <WarningAlert text={warningAlert} /> : null}
+        </div>
+      </section>
+      {loading && <p role="status" className="load-state">Loading events…</p>}
       {loadError && (
-        <div role="alert">
-          {loadError} {canAuthorize ? <button onClick={authorize}>Authorize with Google</button> : <button onClick={retry}>Try again</button>}
+        <div role="alert" className="load-state error-state">
+          <p>{loadError}</p>
+          {canAuthorize ? <button onClick={authorize}>Authorize with Google</button> : <button onClick={retry}>Try again</button>}
         </div>
       )}
-      {!loading && !loadError && <p role="status" id="results-count">{events.length} upcoming {events.length === 1 ? "event" : "events"} found</p>}
-      {!loading && !loadError && events.length === 0 && <p role="status">No events found.</p>}
       <EventErrorBoundary resetKey={allEvents} onRetry={retry}>
-        <div className="charts-container">
-          <EventGenresChart events={events} />
-          <CityEventsChart allLocations={allLocations} events={events} />
+        <div className="content-layout">
+          <section className="event-feed" aria-labelledby="events-heading">
+            <div className="feed-heading">
+              <h2 id="events-heading">Upcoming Events{currentCity === "See all cities" ? "" : ` in ${cityName}`}</h2>
+              <span>Sorted chronologically</span>
+            </div>
+            {!loading && !loadError && events.length === 0 && <div className="load-state empty-state"><p role="status">No events found.</p><p>Try another city or category.</p></div>}
+            <EventList events={events} />
+          </section>
+          <aside className="charts-container" aria-label="Event analytics">
+            <section className="analytics-panel" aria-labelledby="category-chart-heading">
+              <div className="analytics-heading"><div><h2 id="category-chart-heading">Events by Category</h2><p>Topic distribution in {cityName}</p></div><Icon name="pie" /></div>
+              <EventGenresChart events={events} />
+            </section>
+            <section className="analytics-panel" aria-labelledby="city-chart-heading">
+              <div className="analytics-heading"><div><h2 id="city-chart-heading">Events by City</h2><p>Locations in your filtered results</p></div><Icon name="bars" /></div>
+              <CityEventsChart allLocations={allLocations} events={events} />
+            </section>
+          </aside>
         </div>
-        <EventList events={events} />
       </EventErrorBoundary>
-    </div>
+    </main>
   );
 };
 

@@ -14,7 +14,7 @@ const openApp = async () => {
 
 test("timed event shows start rather than creation time", () => {
   render(<Event event={{ ...fixture, created: "1999-01-01T00:00:00Z" }} />);
-  expect(screen.getByText(new Date(fixture.start.dateTime).toLocaleString("en-US"))).toBeVisible();
+  expect(screen.getByText(formatEventStart(fixture.start))).toBeVisible();
   expect(screen.queryByText("1999-01-01T00:00:00Z")).not.toBeInTheDocument();
 });
 test("all-day event retains its calendar date", () => {
