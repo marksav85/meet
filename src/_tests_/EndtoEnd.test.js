@@ -137,3 +137,105 @@ describe("local mock-data browser behavior", () => {
     expect(await page.$eval("#results-count", (element) => element.textContent)).toBe("0 upcoming events found");
   });
 });
+
+// Exercise real React/auth code with fixture-only HTTP responses. The local mock
+// server remains unchanged; Google and AWS requests are never sent.
+describe("short-lived OAuth browser sessions", () => {
+  let browser, context, page, errors, eventRequests, pendingEvent;
+  let holdEvents, unauthorized;
+  const base = process.env.MEET_BROWSER_URL || "http://localhost:3000/";
+  const fixture = { id: "protected", summary: "Protected Calendar fixture", location: "Berlin, Germany", description: "Category: Web Development\nFixture description.", start: { date: "2030-01-01" } };
+  beforeAll(async () => { browser = await puppeteer.launch({ headless: true, timeout: 20000 }); });
+  beforeEach(async () => {
+    errors = []; eventRequests = 0; pendingEvent = undefined; holdEvents = false; unauthorized = false;
+    context = await browser.createBrowserContext(); page = await context.newPage();
+    const source = await (await fetch(new URL("src/api.js", base))).text();
+    const marker = "createAuthClient({ mockData })";
+    expect(source).toContain(marker);
+    const module = source.replace(marker, 'createAuthClient({ mockData, config: { mode: "oauth", apiBase: window.location.origin, redirectUri: window.location.origin + "/" } })');
+    await page.setRequestInterception(true);
+    page.on("request", async (request) => {
+      const url = new URL(request.url());
+      if (!["localhost", "127.0.0.1"].includes(url.hostname) && !["data:", "blob:"].includes(url.protocol)) return request.abort();
+      if (url.pathname === "/src/api.js") return request.respond({ contentType: "application/javascript", body: module });
+      if (url.pathname === "/api/get-events") {
+        eventRequests += 1;
+        if (holdEvents) { pendingEvent = request; return; }
+        return request.respond({ status: unauthorized ? 401 : 200, contentType: "application/json", body: JSON.stringify(unauthorized ? { error: { code: "UNAUTHORIZED" } } : { events: [fixture] }) });
+      }
+      // A fresh sign-in must be explicit; any accidental authorization request
+      // gets a safe fixture error rather than reaching a live service.
+      if (url.pathname.startsWith("/api/")) return request.respond({ status: 503, contentType: "application/json", body: JSON.stringify({ error: { code: "FIXTURE_ONLY" } }) });
+      return request.continue();
+    });
+    page.on("pageerror", (error) => errors.push(error.message));
+  });
+  afterEach(async () => { await context.close(); expect(errors).toEqual([]); });
+  afterAll(async () => { await browser.close(); });
+  const open = async (remaining = 3600000, offline = false) => {
+    await page.evaluateOnNewDocument((ttl, offlineFixture) => {
+      if (!sessionStorage.getItem("fixture-initialized")) {
+        sessionStorage.setItem("fixture-initialized", "yes");
+        sessionStorage.setItem("meet.oauth.session", JSON.stringify({ value: "fixture-token", expiresAt: Date.now() + ttl }));
+        sessionStorage.setItem("meet.oauth.status", "authorized");
+        localStorage.setItem("lastEvents", JSON.stringify([{ id: "offline", summary: "Protected offline fixture", location: "Berlin", start: { date: "2030-01-01" } }]));
+      }
+      if (offlineFixture) Object.defineProperty(navigator, "onLine", { get: () => false, configurable: true });
+    }, remaining, offline);
+    await page.goto(base, { waitUntil: "networkidle0" });
+    await page.waitForSelector(".event");
+  };
+  test("refresh keeps the original expiry and Sign out clears events and prevents restoration", async () => {
+    await open();
+    const expiresAt = await page.evaluate(() => JSON.parse(sessionStorage.getItem("meet.oauth.session")).expiresAt);
+    await page.reload({ waitUntil: "networkidle0" }); await page.waitForSelector(".event");
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem("meet.oauth.session")).expiresAt)).toBe(expiresAt);
+    await page.setViewport({ width: 320, height: 1000 });
+    await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
+    await page.focus(".sign-out-btn");
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => document.querySelectorAll(".event").length === 0);
+    expect(await page.evaluate(() => [sessionStorage.getItem("meet.oauth.session"), localStorage.getItem("lastEvents")])).toEqual([null, null]);
+    const requests = eventRequests;
+    await page.reload({ waitUntil: "networkidle0" });
+    expect(await page.$(".event")).toBeNull(); expect(eventRequests).toBe(requests);
+    expect(await page.$eval('.error-state', (element) => element.textContent)).toContain("Authorize with Google");
+  });
+  test("timer clears the UI and cached data before access-token expiry", async () => {
+    await open(33000);
+    await page.waitForFunction(() => document.querySelectorAll(".event").length === 0, { timeout: 6000 });
+    expect(await page.evaluate(() => sessionStorage.getItem("meet.oauth.session"))).toBeNull();
+    expect(await page.evaluate(() => localStorage.getItem("lastEvents"))).toBeNull();
+    expect(await page.$eval('.error-state', (element) => element.textContent)).toContain("expired");
+  });
+  test("late calendar response cannot restore data after sign-out", async () => {
+    await open(); holdEvents = true;
+    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+    await page.waitForFunction(() => document.querySelector('[role="status"].load-state') !== null);
+    // The fixture handler records the request synchronously before loading ends.
+    const deadline = Date.now() + 2000;
+    while (!pendingEvent && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(pendingEvent).toBeDefined();
+    await page.click(".sign-out-btn");
+    await pendingEvent.respond({ contentType: "application/json", body: JSON.stringify({ events: [fixture] }) });
+    await page.waitForNetworkIdle();
+    expect(await page.$(".event")).toBeNull();
+    expect(await page.evaluate(() => localStorage.getItem("lastEvents"))).toBeNull();
+  });
+  test("401 clears the session and requests explicit authorization", async () => {
+    await open(); unauthorized = true;
+    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+    await page.waitForFunction(() => document.querySelectorAll(".event").length === 0 && document.querySelector(".error-state") !== null);
+    expect(await page.evaluate(() => sessionStorage.getItem("meet.oauth.session"))).toBeNull();
+    expect(await page.$eval('.error-state', (element) => element.textContent)).toContain("Authorize with Google");
+  });
+  test("offline cache requires a valid session and cannot bypass sign-out", async () => {
+    await open(3600000, true);
+    expect(eventRequests).toBe(0);
+    expect(await page.$eval(".event_summary", (element) => element.textContent)).toBe("Protected offline fixture");
+    await page.click(".sign-out-btn");
+    await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+    await page.waitForFunction(() => document.querySelector(".error-state") !== null);
+    expect(await page.$(".event")).toBeNull(); expect(eventRequests).toBe(0);
+  });
+});

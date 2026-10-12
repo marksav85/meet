@@ -1,5 +1,7 @@
 const ATTEMPT_KEY = "meet.oauth.attempt";
 const STATUS_KEY = "meet.oauth.status";
+const SESSION_KEY = "meet.oauth.session";
+const EXPIRY_MARGIN = 30000;
 const ATTEMPT_TTL = 10 * 60 * 1000;
 const CALLBACK_KEYS = ["code", "state", "error", "error_description", "error_uri", "scope", "authuser", "prompt", "hd", "session_state"];
 
@@ -23,7 +25,7 @@ export const getAuthConfig = (location = window.location) => {
 };
 
 // Injectable browser facilities let tests exercise the real flow without navigation
-// or network access. Only the short-lived transaction survives the Google redirect.
+// or network access. Credentials persist only for the current tab and token lifetime.
 export const createAuthClient = (options = {}) => {
   const location = options.location || window.location;
   const history = options.history || window.history;
@@ -40,6 +42,74 @@ export const createAuthClient = (options = {}) => {
   let accessToken;
   let authInFlight;
   let eventsInFlight;
+  let generation = 0;
+  let expiryTimer;
+  let lastError;
+  let storageError;
+  const listeners = new Set();
+  const schedule = options.setTimeout || ((...args) => window.setTimeout(...args));
+  const cancel = options.clearTimeout || ((id) => window.clearTimeout(id));
+  const isOnline = options.isOnline || (() => navigator.onLine);
+  const required = () => new AuthError("AUTH_REQUIRED", "Please authorize with Google to continue.");
+  const validToken = (token) => typeof token === "string" && token.length > 0 && token.length <= 4096 && !/\s/.test(token);
+  const usable = () => Boolean(accessToken && accessToken.expiresAt > now() + EXPIRY_MARGIN);
+  const emit = () => listeners.forEach((listener) => listener({ authenticated: usable(), error: lastError }));
+  const checkGeneration = (expected) => { if (generation !== expected) throw required(); };
+  const clearAuthentication = (error = required(), notify = true) => {
+    generation += 1;
+    cancel(expiryTimer);
+    expiryTimer = undefined;
+    accessToken = undefined;
+    authInFlight = undefined;
+    eventsInFlight = undefined;
+    lastError = error;
+    // Always clear memory/UI even if browser storage has become inaccessible.
+    try { session().removeItem(SESSION_KEY); } catch { /* Fail closed in memory. */ }
+    try { session().setItem(STATUS_KEY, "reauthorize"); } catch { /* Reads will fail closed. */ }
+    try { cache().removeItem("lastEvents"); } catch { /* Cache is never authorization. */ }
+    if (notify) emit();
+  };
+  const expire = () => clearAuthentication(new AuthError("AUTH_REQUIRED", "Your authorization has expired. Please authorize again."));
+  const armExpiry = () => {
+    cancel(expiryTimer);
+    expiryTimer = schedule(() => {
+      if (usable()) armExpiry(); else expire();
+    }, Math.max(0, accessToken.expiresAt - now() - EXPIRY_MARGIN));
+  };
+  const restoreSession = () => {
+    let saved, status;
+    try {
+      saved = session().getItem(SESSION_KEY);
+      status = session().getItem(STATUS_KEY);
+    } catch {
+      storageError = sessionError();
+      clearAuthentication(storageError, false);
+      return;
+    }
+    if (saved === null) return;
+    let record;
+    try { record = JSON.parse(saved); } catch { /* Invalid data is discarded below. */ }
+    if (status === "reauthorize" || status === "pending" || !record || typeof record !== "object" || Array.isArray(record) || Object.keys(record).length !== 2 ||
+        !validToken(record.value) || !Number.isFinite(record.expiresAt) || record.expiresAt <= now() + EXPIRY_MARGIN ||
+        record.expiresAt > now() + 86400000) {
+      clearAuthentication(required(), false);
+      return;
+    }
+    accessToken = record;
+    lastError = undefined;
+    armExpiry();
+    emit();
+  };
+  const subscribe = (listener) => {
+    listeners.add(listener);
+    listener({ authenticated: usable(), error: lastError });
+    return () => listeners.delete(listener);
+  };
+  const signOut = () => {
+    callback = undefined;
+    try { session().removeItem(ATTEMPT_KEY); } catch { /* Sign-out still clears memory. */ }
+    clearAuthentication(new AuthError("AUTH_REQUIRED", "You have signed out. Please authorize with Google to continue."));
+  };
 
   const sessionError = () => new AuthError("SESSION_UNAVAILABLE", "Browser session storage is required to authorize safely.", false);
   const getStatus = () => {
@@ -70,6 +140,10 @@ export const createAuthClient = (options = {}) => {
     }
     // Remove legacy persistent tokens without reading their values.
     try { cache().removeItem("access_token"); } catch { /* Storage may be disabled. */ }
+    if (config.mode === "oauth") {
+      if (hadCallback) clearAuthentication(required(), false);
+      else restoreSession();
+    }
     return hadCallback;
   };
   const validateConfig = () => {
@@ -86,24 +160,29 @@ export const createAuthClient = (options = {}) => {
     }
   };
   const request = async (path, init = {}) => {
+    const expected = generation;
     let response;
     try {
       response = await fetchRequest(`${config.apiBase.replace(/\/$/, "")}${path}`, {
         ...init, credentials: "omit", cache: "no-store", referrerPolicy: "no-referrer",
       });
     } catch {
+      checkGeneration(expected);
       throw new AuthError("AUTH_NETWORK", "The authentication service could not be reached. Please try again.");
+    }
+    checkGeneration(expected);
+    if (response.status === 401) {
+      const error = new AuthError("AUTH_REQUIRED", "Your authorization has expired or was rejected. Please authorize again.");
+      clearAuthentication(error);
+      throw error;
     }
     let body;
     try { body = await response.json(); } catch {
+      checkGeneration(expected);
       throw new AuthError("INVALID_RESPONSE", "The service returned an invalid response.");
     }
+    checkGeneration(expected);
     if (!response.ok) {
-      if (response.status === 401) {
-        accessToken = undefined;
-        setStatus("reauthorize");
-        throw new AuthError("AUTH_REQUIRED", "Your authorization has expired or was rejected. Please authorize again.");
-      }
       if (response.status === 403) throw new AuthError("ACCESS_DENIED", "Access to this calendar or application is not permitted.", false);
       throw new AuthError("SERVICE_ERROR", "The service could not complete the request. Please try again.", false);
     }
@@ -118,10 +197,12 @@ export const createAuthClient = (options = {}) => {
   const start = async ({ explicit = false } = {}) => {
     prepare();
     validateConfig();
+    if (storageError) throw storageError;
     if (authInFlight) return authInFlight;
     if (!explicit && getStatus()) throw new AuthError("AUTH_REQUIRED", "Please authorize with Google to continue.");
-    authInFlight = (async () => {
-      accessToken = undefined;
+    clearAuthentication(required(), Boolean(accessToken) || explicit);
+    const expected = generation;
+    const work = (async () => {
       callback = undefined;
       clearAttempt();
       setStatus("pending");
@@ -130,9 +211,11 @@ export const createAuthClient = (options = {}) => {
         const state = Array.from(crypto.getRandomValues(new Uint8Array(32)), (byte) => byte.toString(16).padStart(2, "0")).join("");
         const codeVerifier = base64url(crypto.getRandomValues(new Uint8Array(32)));
         const codeChallenge = base64url(new Uint8Array(await crypto.subtle.digest("SHA-256", Uint8Array.from(codeVerifier, (char) => char.charCodeAt(0)))));
+        checkGeneration(expected);
         const attempt = { state, codeVerifier, redirectUri: config.redirectUri, createdAt: now() };
         try { session().setItem(ATTEMPT_KEY, JSON.stringify(attempt)); } catch { throw sessionError(); }
         const result = await post("/api/get-auth-url", { state, redirectUri: config.redirectUri, codeChallenge });
+        checkGeneration(expected);
         const url = new URL(result.authUrl);
         if (url.origin !== "https://accounts.google.com" || url.pathname !== "/o/oauth2/v2/auth" || url.searchParams.get("state") !== state ||
             url.searchParams.get("redirect_uri") !== config.redirectUri || url.searchParams.get("code_challenge") !== codeChallenge ||
@@ -141,15 +224,18 @@ export const createAuthClient = (options = {}) => {
         }
         navigate(url.href);
       } catch (error) {
+        checkGeneration(expected);
         clearAttempt();
         setStatus("reauthorize");
         throw error instanceof AuthError ? error : new AuthError("INVALID_AUTH_URL", "Authorization could not be started. Please try again.");
       }
     })();
-    try { await authInFlight; } finally { authInFlight = undefined; }
+    authInFlight = work;
+    try { await work; } finally { if (authInFlight === work) authInFlight = undefined; }
   };
 
   const processCallback = async () => {
+    const expected = generation;
     const incoming = callback;
     callback = undefined;
     let attempt;
@@ -167,29 +253,41 @@ export const createAuthClient = (options = {}) => {
       throw new AuthError("MISSING_CODE", "Google did not return an authorization code. Please authorize again.");
     }
     const result = await post("/api/token", { code: incoming.code, redirectUri: attempt.redirectUri, codeVerifier: attempt.codeVerifier });
-    if (typeof result.access_token !== "string" || !result.access_token || /\s/.test(result.access_token) || result.token_type !== "Bearer" ||
+    checkGeneration(expected);
+    if (!validToken(result.access_token) || result.token_type !== "Bearer" ||
         !Number.isFinite(result.expires_in) || result.expires_in <= 0 || result.expires_in > 86400) {
       throw new AuthError("INVALID_TOKEN_RESPONSE", "The authorization service returned an invalid response.");
     }
-    accessToken = { value: result.access_token, expiresAt: now() + result.expires_in * 1000 };
-    setStatus("authorized");
+    if (result.expires_in * 1000 <= EXPIRY_MARGIN) throw new AuthError("INVALID_TOKEN_RESPONSE", "The service returned an invalid response.");
+    const record = { value: result.access_token, expiresAt: now() + result.expires_in * 1000 };
+    try {
+      session().setItem(SESSION_KEY, JSON.stringify(record));
+      setStatus("authorized");
+    } catch {
+      clearAuthentication(sessionError());
+      throw sessionError();
+    }
+    accessToken = record;
+    lastError = undefined;
+    armExpiry();
+    emit();
     return accessToken.value;
   };
   const getAccessToken = async () => {
     prepare();
     validateConfig();
+    if (storageError) throw storageError;
     if (callback) {
       if (authInFlight) return authInFlight;
-      authInFlight = processCallback();
-      try { return await authInFlight; } finally { authInFlight = undefined; }
+      const work = processCallback();
+      authInFlight = work;
+      try { return await work; } finally { if (authInFlight === work) authInFlight = undefined; }
     }
     if (authInFlight) return authInFlight;
-    if (accessToken && accessToken.expiresAt > now() + 30000) return accessToken.value;
-    if (accessToken) {
-      accessToken = undefined;
-      setStatus("reauthorize");
-    }
+    if (usable()) return accessToken.value;
+    if (accessToken) expire();
     if (getStatus()) throw new AuthError("AUTH_REQUIRED", "Please authorize with Google to continue.");
+    if (!isOnline()) throw required();
     await start();
     throw new AuthError("AUTH_REDIRECT", "Redirecting to Google…", false);
   };
@@ -203,20 +301,26 @@ export const createAuthClient = (options = {}) => {
       }
       return options.mockData || [];
     }
-    if (!(options.isOnline || (() => navigator.onLine))()) return readCachedEvents(cache());
     if (eventsInFlight) return eventsInFlight;
-    eventsInFlight = (async () => {
+    const expected = generation;
+    const work = (async () => {
       const token = await getAccessToken();
+      checkGeneration(expected);
+      if (!usable()) { expire(); throw required(); }
+      if (!isOnline()) return readCachedEvents(cache());
       const result = await request("/api/get-events", { method: "GET", headers: { Authorization: `Bearer ${token}` } });
       if (!Array.isArray(result.events) || result.events.some((event) => !event || typeof event !== "object" || Array.isArray(event))) {
         throw new AuthError("INVALID_EVENTS", "The service returned invalid events.", false);
       }
+      checkGeneration(expected);
+      if (!usable()) { expire(); throw required(); }
       try { cache().setItem("lastEvents", JSON.stringify(result.events)); } catch { /* Fresh events remain usable when cache storage is unavailable. */ }
       return result.events;
     })();
-    try { return await eventsInFlight; } finally { eventsInFlight = undefined; }
+    eventsInFlight = work;
+    try { return await work; } finally { if (eventsInFlight === work) eventsInFlight = undefined; }
   };
-  return { prepare, getEvents, getAccessToken, startAuthentication: start, isMockMode: () => config.mode === "mock" };
+  return { prepare, getEvents, getAccessToken, signOut, subscribeAuthentication: subscribe, startAuthentication: start, isMockMode: () => config.mode === "mock" };
 };
 
 export const readCachedEvents = (storage) => {

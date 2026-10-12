@@ -1,6 +1,6 @@
 import "./App.css";
 import { getEventCategory } from "./event-categories";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import EventErrorBoundary from "./components/EventErrorBoundary";
 import CitySearch from "./components/CitySearch";
 import CategoryFilter from "./components/CategoryFilter";
@@ -9,7 +9,7 @@ import Icon from "./components/Icon";
 import EventList from "./components/EventList";
 import CityEventsChart from "./components/CityEventsChart";
 import EventGenresChart from "./components/EventGenresChart";
-import { extractLocations, getEvents, AuthError, startAuthentication } from "./api";
+import { extractLocations, getEvents, AuthError, startAuthentication, signOut, subscribeAuthentication } from "./api";
 import { InfoAlert, WarningAlert } from "./components/Alert";
 
 const MAX_EVENTS = 50;
@@ -19,6 +19,8 @@ const eventStartTime = (event) => {
 };
 
 const App = () => {
+  const loadVersion = useRef(0);
+  const [authenticated, setAuthenticated] = useState(false);
   const [allEvents, setAllEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -28,6 +30,18 @@ const App = () => {
   const [currentCity, setCurrentCity] = useState("See all cities");
   const [infoAlert, setInfoAlert] = useState("");
   const [warningAlert, setWarningAlert] = useState("");
+
+  useEffect(() => subscribeAuthentication(({ authenticated: signedIn, error }) => {
+    setAuthenticated(signedIn);
+    if (error) {
+      loadVersion.current += 1;
+      setAllEvents([]);
+      setLoading(false);
+      setLoadError(error.message);
+      setCanAuthorize(error.canAuthorize);
+      setInfoAlert("");
+    }
+  }), []);
 
   useEffect(() => {
     const updateConnection = () => {
@@ -44,6 +58,8 @@ const App = () => {
 
   useEffect(() => {
     let active = true;
+    const version = ++loadVersion.current;
+    const isCurrent = () => active && version === loadVersion.current;
     setLoading(true);
     setLoadError("");
     setCanAuthorize(false);
@@ -61,15 +77,15 @@ const App = () => {
           location: typeof event.location === "string" ? event.location : "",
           description: typeof event.description === "string" ? event.description : "",
         }));
-        if (active) setAllEvents(normalized);
+        if (isCurrent()) setAllEvents(normalized);
       } catch (error) {
-        if (active) {
+        if (isCurrent()) {
           setAllEvents([]);
           setLoadError(error instanceof AuthError ? error.message : "Events could not be loaded. Please check your connection and try again.");
           setCanAuthorize(error instanceof AuthError && error.canAuthorize);
         }
       } finally {
-        if (active) setLoading(false);
+        if (isCurrent()) setLoading(false);
       }
     };
     load();
@@ -93,8 +109,11 @@ const App = () => {
   );
   const authorize = async () => {
     setCanAuthorize(false);
-    try { await startAuthentication({ explicit: true }); }
+    const pending = startAuthentication({ explicit: true });
+    const version = loadVersion.current;
+    try { await pending; }
     catch (error) {
+      if (version !== loadVersion.current) return;
       setLoadError(error instanceof AuthError ? error.message : "Authorization could not be started. Please try again.");
       setCanAuthorize(error instanceof AuthError && error.canAuthorize);
     }
@@ -109,7 +128,10 @@ const App = () => {
       <section className="hero" aria-labelledby="hero-title">
         <div className="brand-row">
           <div className="brand"><span className="brand-mark" aria-hidden="true">m</span><span>Meet</span></div>
-          <ThemeToggle />
+          <div className="brand-actions">
+            {authenticated && <button className="sign-out-btn" type="button" onClick={signOut}>Sign out</button>}
+            <ThemeToggle />
+          </div>
         </div>
         <span className="hero-eyebrow"><span className="status-dot" />Discover. Connect. Create.</span>
         <h1 id="hero-title">Discover tech gatherings<br className="hero-break" /> across the globe</h1>

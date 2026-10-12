@@ -26,7 +26,7 @@ test('starts a random session-bound transaction with S256 via Lambda POST', asyn
   const attempt = await begin(); expect(attempt.state).toMatch(/^[a-f0-9]{64}$/); expect(attempt.codeVerifier).toHaveLength(43); expect(navigate).toHaveBeenCalledTimes(1);
   const [url, init] = fetchMock.mock.calls[0]; expect(url).toBe('https://api.example.test/stage/api/get-auth-url'); expect(init.method).toBe('POST'); expect(JSON.parse(init.body).codeVerifier).toBeUndefined();
 });
-test('exchanges callback once, cleans parameters and uses bearer headers without persisting tokens', async () => {
+test('exchanges callback once, cleans parameters and uses bearer headers persisting only a bounded tab session', async () => {
   const attempt = await begin(); cache.setItem('access_token', 'legacy');
   const { auth, history } = client(`?code=fake-code&state=${attempt.state}&scope=calendar&keep=yes`);
   expect(await auth.getEvents()).toEqual([{ id: 'one' }]); expect(history.replaceState).toHaveBeenCalledWith(null, '', '/meet/?keep=yes');
@@ -34,6 +34,7 @@ test('exchanges callback once, cleans parameters and uses bearer headers without
   expect(fetchMock.mock.calls[1][1].method).toBe('POST'); expect(JSON.parse(fetchMock.mock.calls[1][1].body).code).toBe('fake-code');
   expect(fetchMock.mock.calls[2][1].headers.Authorization).toBe('Bearer fake-bearer');
   expect(fetchMock.mock.calls.map(([url]) => url).join(' ')).not.toMatch(/fake-code|fake-bearer|tokeninfo/);
+  expect(JSON.parse(session.getItem("meet.oauth.session"))).toEqual({ value: "fake-bearer", expiresAt: clock + 3600000 });
   expect(JSON.stringify([session.getItem('meet.oauth.status'), cache.getItem('lastEvents')])).not.toMatch(/fake-bearer/);
 });
 test.each(['', 'wrong'])('rejects missing/mismatched state %p without exchange', async (state) => {

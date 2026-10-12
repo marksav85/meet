@@ -12,3 +12,6 @@ export const isMockMode = client.isMockMode;
 export const startAuthentication = client.startAuthentication;
 export const getAccessToken = client.getAccessToken;
 export const getEvents = client.getEvents;
+
+export const signOut = client.signOut;
+export const subscribeAuthentication = client.subscribeAuthentication;

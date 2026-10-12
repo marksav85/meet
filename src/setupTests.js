@@ -28,10 +28,15 @@ jest.mock("./api", () => ({
   ...jest.requireActual("./api"),
   getEvents: jest.fn(),
   startAuthentication: jest.fn(),
+  signOut: jest.fn(),
+  subscribeAuthentication: jest.fn(),
 }));
 
 beforeEach(() => {
-  const { getEvents, startAuthentication } = require("./api");
+  const { getEvents, startAuthentication, signOut, subscribeAuthentication } = require("./api");
+  const real = jest.requireActual("./api");
+  signOut.mockReset().mockImplementation(real.signOut);
+  subscribeAuthentication.mockReset().mockImplementation(real.subscribeAuthentication);
   getEvents.mockReset();
   startAuthentication.mockReset();
   getEvents.mockResolvedValue(require("./mock-data").default);
