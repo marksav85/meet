@@ -1,5 +1,9 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
+/**
+ * Draws one labeled horizontal bar using the coordinates and data supplied by Recharts.
+ * Theme variables keep its city label, event count and bar readable in both themes.
+ */
 const CityBar = ({ x, y, width, height, background, payload }) => {
   // Reserve space for the count on narrow screens; the SVG title retains the full city.
   const labelLength = Math.max(5, Math.floor((background.width - 80) / 7));
@@ -13,7 +17,12 @@ const CityBar = ({ x, y, width, height, background, payload }) => {
   );
 };
 
+/**
+ * Summarizes the filtered events by location for Meet’s analytics sidebar.
+ * Uses App’s known locations to count matches and omits cities with no results.
+ */
 const CityEventsChart = ({ allLocations, events }) => {
+  // Match full location strings for counts, then shorten only the displayed city labels.
   const data = allLocations.filter((location) => typeof location === "string" && location.trim()).map((location) => ({
     city: location.split(/, | - /)[0],
     count: events.filter((event) => event.location === location).length,
@@ -21,6 +30,7 @@ const CityEventsChart = ({ allLocations, events }) => {
   if (!data.length) return <p className="chart-note">No city data to display.</p>;
   return (
     <div className="city-chart" role="img" aria-label={`Events by city: ${data.map(({ city, count }) => `${city}: ${count}`).join(", ")}`}>
+      {/* Scale bars against the largest city count; allocate one row per populated city. */}
       <ResponsiveContainer width="100%" height={data.length * 52 + 16}>
         <BarChart data={data} layout="vertical" margin={{ top: 12, right: 0, bottom: 0, left: 0 }}>
           <XAxis type="number" hide domain={[0, Math.max(...data.map(({ count }) => count))]} />

@@ -1,7 +1,12 @@
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import { EVENT_CATEGORIES, getEventCategory } from "../event-categories";
 
+/**
+ * Visualizes the filtered events as a category donut and a count/percentage legend.
+ * Uses Calendar description markers; the center reports all supplied events.
+ */
 const EventGenresChart = ({ events }) => {
+  // Convert each event’s marker into one of the six canonical category counts.
   const categories = events.map(getEventCategory);
   const data = EVENT_CATEGORIES.map(({ name, color }) => ({
     name, color, value: categories.filter((category) => category === name).length,
@@ -10,6 +15,7 @@ const EventGenresChart = ({ events }) => {
   const total = data.reduce((sum, item) => sum + item.value, 0);
   return (
     <>
+      {/* Category slices and themed tooltips surround the total filtered-event count. */}
       <div className="donut-chart" role="img" aria-label={`Category distribution of ${total} categorized events`}>
         <ResponsiveContainer width="100%" height={220}>
           <PieChart>
@@ -21,6 +27,7 @@ const EventGenresChart = ({ events }) => {
         </ResponsiveContainer>
         <div className={`donut-center ${total ? "" : "donut-empty"}`}><strong>{events.length}</strong><span>Total events</span></div>
       </div>
+      {/* Show only populated categories, with percentages based on categorized events. */}
       <div className="category-legend" aria-label="Category counts">
         {data.filter(({ value }) => value > 0).map(({ name, color, value }) => (
           <div className="legend-row" key={name} style={{ "--category-accent": color }}>
@@ -30,6 +37,7 @@ const EventGenresChart = ({ events }) => {
           </div>
         ))}
       </div>
+      {/* Explain an empty distribution or events excluded from its denominator. */}
       {!total && <p className="chart-note">No categorized events to display.</p>}
       {total < events.length && <p className="chart-note">{events.length - total} uncategorized. Percentages cover categorized events.</p>}
     </>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Icon from "./Icon";
 
+// Prefer the startup theme, then a saved choice, with the OS preference as a fallback.
 const initialTheme = () => {
   // index.html already chose a theme before first paint; React must keep that choice.
   if (["light", "dark"].includes(document.documentElement.dataset.theme)) return document.documentElement.dataset.theme;
@@ -11,13 +12,19 @@ const initialTheme = () => {
   return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 };
 
+/**
+ * Lets visitors switch the shared light/dark theme through an accessible sun/moon button.
+ * Keeps its current choice locally, updates the document theme and saves explicit choices.
+ */
 const ThemeToggle = () => {
   const [theme, setTheme] = useState(initialTheme);
+  // Synchronize CSS variables, native control colors and the browser’s theme-color metadata.
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#0f131c" : "#f8fafc");
   }, [theme]);
+  // Flip the theme; saving the explicit choice is best effort if browser storage is blocked.
   const toggle = () => {
     const next = theme === "light" ? "dark" : "light";
     setTheme(next);
