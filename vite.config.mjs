@@ -9,7 +9,9 @@ export default defineConfig(({ command, mode }) => {
   return {
     base: '/',
     plugins: [react(), VitePWA({
+      // Use the maintained public manifest; explicitly include branding in the precache.
       manifest: false,
+      includeAssets: ['meet-favicon.ico', 'meet-favicon-32.png', 'meet-apple-touch-icon.png', 'meet-icon-192.png', 'meet-icon-512.png'],
       injectRegister: false,
       filename: 'service-worker.js',
       devOptions: { enabled: false },
