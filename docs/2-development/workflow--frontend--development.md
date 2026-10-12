@@ -14,7 +14,7 @@ npm ci
 npm start
 npm test
 npm run test:browser # keep the mock development server running
-npm run build
+npm run build # requires the release variables below
 npm run preview
 ```
 
@@ -28,11 +28,12 @@ not a drop-in GitHub Pages `/meet/` deployment. No deployment command is supplie
 Jest uses jsdom for components and a separate Node environment for Puppeteer browser
 tests, which block external requests. Normal npm installation downloads matching
 Chrome; if scripts were disabled, use the installed package's
-`npx puppeteer browsers install chrome`. Last verification passed **120 frontend
-tests** (111 unit/component/Gherkin and nine browser). The production audit had zero
+`npx puppeteer browsers install chrome`. The pre-release pass passed **176 frontend
+tests** (161 unit/component/Gherkin and 15 browser). The production audit had zero
 findings; 23 moderate/eight high development findings remain in coverage/Gherkin
 and browser-download dependencies. Puppeteer 25's full-suite ESM compatibility
-problem remains deferred. The build passes with a >500 kB chunk warning.
+problem remains deferred. Analytics load in separate chunks to keep the
+charting library out of the initial UI/authentication bundle.
 No standalone lint command exists; Vite build is not lint verification.
 
 ## Public local OAuth configuration
@@ -47,15 +48,43 @@ VITE_OAUTH_REDIRECT_URI=http://localhost:3000/
 
 Restart Vite after changes. These values are public and bundled: never add client
 secrets, AWS keys or tokens. Legacy `REACT_APP_*` overrides must use `VITE_*` names.
-Non-local defaults still reference the legacy API/callback; future production must
-explicitly select a compatible API and approved root-host callback. The owner has
-verified isolated live integration; automated tests remain mocked. See
+Non-local hosts have no API/callback fallback; missing settings fail closed.
+The owner has verified isolated live integration; automated tests remain mocked. See
 [authentication](../../AUTHENTICATION.md) and [backend maintenance](../../auth-server/README.md).
+
+## Production frontend build
+
+The owner reports the production backend is deployed at
+`https://as4vfvezdg.execute-api.eu-central-1.amazonaws.com/prod`. The intended
+frontend is `https://meet.marksavilledesigns.com/`. No backend redeployment is
+needed for this frontend preparation.
+
+From the repository root, build with explicit public values:
+
+```sh
+VITE_DATA_MODE=oauth \
+VITE_API_BASE_URL=https://as4vfvezdg.execute-api.eu-central-1.amazonaws.com/prod \
+VITE_OAUTH_REDIRECT_URI=https://meet.marksavilledesigns.com/ \
+npm run build
+```
+
+The guard applies to all Vite builds, including alternate modes: OAuth must be
+explicit, the API must be HTTPS with a `/prod` stage path, and the callback must
+be an HTTPS root URL ending in `/`. Missing values, mock mode, legacy `/dev`,
+localtest, local URLs and GitHub Pages callbacks fail the build. The guard checks
+URL shape, not live API ownership or Google settings; confirm the exact values
+above for release. These values are build inputs, not runtime Pages settings.
+
+Vite merges mode-specific files and local overrides; shell/build environment
+values take precedence. Never put secrets in `VITE_*`. Use explicit values or a
+clean checkout to avoid local configuration selecting the wrong environment.
+Deploy only `dist/`; preserve historical GitHub Pages and `/dev`. Release hosting
+and live OAuth verification still require separate authorization.
 
 ## PWA and offline behavior
 
 Vite PWA precaches shell/static assets; existing `lastEvents` preserves non-sensitive
-event data. There is no external API runtime caching. Callback URLs carrying
+event data only for a valid authenticated session (mock mode is exempt). There is no external API runtime caching. Callback URLs carrying
 `code`, `state` or `error` bypass shell fallback. Authentication responses/tokens
 are never cached. New production workers skip waiting and clean old precaches but
 do not claim active pages or force reloads during PKCE; next navigation uses updates.
@@ -85,4 +114,5 @@ Use canonical spelling. Parsing tolerates case/whitespace, CRLF, common Calendar
 HTML breaks and `&amp;`. Missing, unknown or multiple markers leave events out of
 the pie, while preserving their list/city-chart visibility. Percentages cover only
 categorized events; titles are not inferred. Existing mocks explicitly use Web
-Development. Category-filter UI belongs to the pending redesign.
+Development. Category pills filter the first 50 chronologically ordered events;
+missing/ambiguous markers remain visible under All Categories.

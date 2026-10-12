@@ -8,6 +8,7 @@ export const EVENT_CATEGORIES = [
   { name: "Startups & Networking", color: "var(--category-startups)" },
 ];
 
+// One parser keeps badges, filters and charts consistent; titles are not reliable metadata.
 export const getEventCategory = (event) => {
   if (typeof event?.description !== "string") return null;
   // Calendar may wrap description lines in HTML. Treat it only as text; never

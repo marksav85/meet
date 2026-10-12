@@ -123,3 +123,15 @@ test("new locations keep an active search filtered", async () => {
   view.rerender(<CitySearch allLocations={["Bern", "Paris"]} setCurrentCity={() => {}} setInfoAlert={() => {}} />);
   expect(view.getAllByRole("listitem").map((item) => item.textContent)).toEqual(["Bern", "See all cities"]);
 });
+
+test('Escape from a suggestion returns keyboard focus to city search', async () => {
+  render(<CitySearch allLocations={["Berlin"]} setCurrentCity={() => {}} setInfoAlert={() => {}} />);
+  const user = userEvent.setup();
+  const input = screen.getByRole("textbox");
+  await user.click(input);
+  await user.keyboard("{ArrowDown}");
+  expect(screen.getByRole("button", { name: "Berlin" })).toHaveFocus();
+  await user.keyboard("{Escape}");
+  expect(input).toHaveFocus();
+  expect(screen.queryByRole("list")).not.toBeInTheDocument();
+});

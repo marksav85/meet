@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Icon from "./Icon";
 
 const initialTheme = () => {
+  // index.html already chose a theme before first paint; React must keep that choice.
   if (["light", "dark"].includes(document.documentElement.dataset.theme)) return document.documentElement.dataset.theme;
   try {
     const saved = localStorage.getItem("meet-theme");
@@ -20,6 +21,7 @@ const ThemeToggle = () => {
   const toggle = () => {
     const next = theme === "light" ? "dark" : "light";
     setTheme(next);
+    // Save only explicit choices, so first visits can follow the OS preference.
     try { localStorage.setItem("meet-theme", next); } catch { /* Keep the in-memory choice. */ }
   };
   return (

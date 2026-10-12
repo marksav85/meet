@@ -1,4 +1,3 @@
-// src/components/CitySearch.js
 import { useState, useId, useRef } from "react";
 
 import Icon from "./Icon";
@@ -35,13 +34,13 @@ const CitySearch = ({ allLocations, setCurrentCity, setInfoAlert }) => {
   const handleItemClicked = (event) => {
     const value = event.target.textContent;
     setQuery(value);
-    setShowSuggestions(false); // to hide the list
+    setShowSuggestions(false);
     setCurrentCity(value);
     setInfoAlert("");
   };
 
   return (
-    <div id="city-search" ref={container} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setShowSuggestions(false); }} onKeyDown={(event) => { if (event.key === "Escape") setShowSuggestions(false); }}>
+    <div id="city-search" ref={container} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setShowSuggestions(false); }} onKeyDown={(event) => { if (event.key === "Escape") { container.current.querySelector("input")?.focus(); setShowSuggestions(false); } }}>
       <div className="city-input-wrap">
       <Icon name="location" />
       <input

@@ -1,16 +1,18 @@
 import "./App.css";
 import { getEventCategory } from "./event-categories";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
 import EventErrorBoundary from "./components/EventErrorBoundary";
 import CitySearch from "./components/CitySearch";
 import CategoryFilter from "./components/CategoryFilter";
 import ThemeToggle from "./components/ThemeToggle";
 import Icon from "./components/Icon";
 import EventList from "./components/EventList";
-import CityEventsChart from "./components/CityEventsChart";
-import EventGenresChart from "./components/EventGenresChart";
 import { extractLocations, getEvents, AuthError, startAuthentication, signOut, subscribeAuthentication } from "./api";
 import { InfoAlert, WarningAlert } from "./components/Alert";
+
+// Keep the charting library out of the initial UI/authentication bundle.
+const CityEventsChart = lazy(() => import("./components/CityEventsChart"));
+const EventGenresChart = lazy(() => import("./components/EventGenresChart"));
 
 const MAX_EVENTS = 50;
 const eventStartTime = (event) => {
@@ -94,7 +96,8 @@ const App = () => {
     };
   }, [reload]);
 
-  // Google supplies upcoming events; keep mock/offline feeds in chronological order too.
+  // Bound the chronological feed before filtering: filters must not pull in event 51+.
+  // Google supplies upcoming events; sorting also keeps cached/mock feeds predictable.
   const upcomingEvents = useMemo(() => [...allEvents]
     .sort((a, b) => {
       const first = eventStartTime(a);
@@ -168,11 +171,11 @@ const App = () => {
           <aside className="charts-container" aria-label="Event analytics">
             <section className="analytics-panel" aria-labelledby="category-chart-heading">
               <div className="analytics-heading"><div><h2 id="category-chart-heading">Events by Category</h2><p>Topic distribution in {cityName}</p></div><Icon name="pie" /></div>
-              <EventGenresChart events={events} />
+              <Suspense fallback={<p className="chart-note" role="status">Loading analytics…</p>}><EventGenresChart events={events} /></Suspense>
             </section>
             <section className="analytics-panel" aria-labelledby="city-chart-heading">
               <div className="analytics-heading"><div><h2 id="city-chart-heading">Events by City</h2><p>Locations in your filtered results</p></div><Icon name="bars" /></div>
-              <CityEventsChart allLocations={allLocations} events={events} />
+              <Suspense fallback={<p className="chart-note" role="status">Loading analytics…</p>}><CityEventsChart allLocations={allLocations} events={events} /></Suspense>
             </section>
           </aside>
         </div>

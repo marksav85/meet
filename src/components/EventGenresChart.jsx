@@ -6,6 +6,7 @@ const EventGenresChart = ({ events }) => {
   const data = EVENT_CATEGORIES.map(({ name, color }) => ({
     name, color, value: categories.filter((category) => category === name).length,
   }));
+  // Missing/ambiguous markers stay in the event list but not the percentage denominator.
   const total = data.reduce((sum, item) => sum + item.value, 0);
   return (
     <>

@@ -18,9 +18,9 @@ export const getAuthConfig = (location = window.location) => {
   const local = ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname);
   return {
     mode: import.meta.env.VITE_DATA_MODE || (local ? "mock" : "oauth"),
-    // Live localhost mode must explicitly select the future isolated testing API.
-    apiBase: import.meta.env.VITE_API_BASE_URL || (local ? "" : "https://joocz3kndl.execute-api.eu-central-1.amazonaws.com/dev"),
-    redirectUri: import.meta.env.VITE_OAUTH_REDIRECT_URI || (local ? "http://localhost:3000/" : "https://marksav85.github.io/meet/"),
+    // Missing release settings fail closed; local OAuth still needs an explicit API.
+    apiBase: import.meta.env.VITE_API_BASE_URL || "",
+    redirectUri: import.meta.env.VITE_OAUTH_REDIRECT_URI || (local ? "http://localhost:3000/" : ""),
   };
 };
 
@@ -54,6 +54,7 @@ export const createAuthClient = (options = {}) => {
   const validToken = (token) => typeof token === "string" && token.length > 0 && token.length <= 4096 && !/\s/.test(token);
   const usable = () => Boolean(accessToken && accessToken.expiresAt > now() + EXPIRY_MARGIN);
   const emit = () => listeners.forEach((listener) => listener({ authenticated: usable(), error: lastError }));
+  // Logout/expiry invalidate every outstanding operation, even if fetch cannot be cancelled.
   const checkGeneration = (expected) => { if (generation !== expected) throw required(); };
   const clearAuthentication = (error = required(), notify = true) => {
     generation += 1;
@@ -72,6 +73,7 @@ export const createAuthClient = (options = {}) => {
   const expire = () => clearAuthentication(new AuthError("AUTH_REQUIRED", "Your authorization has expired. Please authorize again."));
   const armExpiry = () => {
     cancel(expiryTimer);
+    // A delayed background timer must recheck the absolute expiry, not renew it.
     expiryTimer = schedule(() => {
       if (usable()) armExpiry(); else expire();
     }, Math.max(0, accessToken.expiresAt - now() - EXPIRY_MARGIN));
@@ -95,6 +97,7 @@ export const createAuthClient = (options = {}) => {
       clearAuthentication(required(), false);
       return;
     }
+    // Reuse the recorded deadline; recalculating from a duration would extend each reload.
     accessToken = record;
     lastError = undefined;
     armExpiry();
@@ -208,6 +211,7 @@ export const createAuthClient = (options = {}) => {
       setStatus("pending");
       try {
         if (!crypto?.getRandomValues || !crypto?.subtle?.digest) throw new AuthError("CRYPTO_UNAVAILABLE", "Secure browser cryptography is required to authorize.", false);
+        // State binds this tab to the callback; PKCE binds the code to its private verifier.
         const state = Array.from(crypto.getRandomValues(new Uint8Array(32)), (byte) => byte.toString(16).padStart(2, "0")).join("");
         const codeVerifier = base64url(crypto.getRandomValues(new Uint8Array(32)));
         const codeChallenge = base64url(new Uint8Array(await crypto.subtle.digest("SHA-256", Uint8Array.from(codeVerifier, (char) => char.charCodeAt(0)))));
@@ -259,6 +263,7 @@ export const createAuthClient = (options = {}) => {
       throw new AuthError("INVALID_TOKEN_RESPONSE", "The authorization service returned an invalid response.");
     }
     if (result.expires_in * 1000 <= EXPIRY_MARGIN) throw new AuthError("INVALID_TOKEN_RESPONSE", "The service returned an invalid response.");
+    // Persist only this short-lived bearer credential; no refresh token or account data.
     const record = { value: result.access_token, expiresAt: now() + result.expires_in * 1000 };
     try {
       session().setItem(SESSION_KEY, JSON.stringify(record));
@@ -307,6 +312,7 @@ export const createAuthClient = (options = {}) => {
       const token = await getAccessToken();
       checkGeneration(expected);
       if (!usable()) { expire(); throw required(); }
+      // Cached events are data, never proof of authentication. Authorize before reading them.
       if (!isOnline()) return readCachedEvents(cache());
       const result = await request("/api/get-events", { method: "GET", headers: { Authorization: `Bearer ${token}` } });
       if (!Array.isArray(result.events) || result.events.some((event) => !event || typeof event !== "object" || Array.isArray(event))) {

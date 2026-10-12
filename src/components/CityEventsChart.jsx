@@ -1,6 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 const CityBar = ({ x, y, width, height, background, payload }) => {
+  // Reserve space for the count on narrow screens; the SVG title retains the full city.
   const labelLength = Math.max(5, Math.floor((background.width - 80) / 7));
   const label = payload.city.length > labelLength ? `${payload.city.slice(0, labelLength - 1)}…` : payload.city;
   return (

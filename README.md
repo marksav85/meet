@@ -1,7 +1,7 @@
 # Meet App
 
 Meet is a React 18 / JavaScript portfolio PWA for discovering technology events.
-It supports city search, event-count selection, expandable details, city/category
+It supports city/category filters, a read-only results count, expandable details, city/category
 charts, accessible interactions and offline access to previously loaded events.
 The frontend uses Vite 8.3.4 and Vite PWA; a separate AWS Lambda backend handles
 Google OAuth and Calendar retrieval. Atatus has been removed.
@@ -14,7 +14,7 @@ Use Node.js 24, then run from the project root:
 npm ci
 npm start
 npm test
-npm run build
+npm run build # supply the production VITE_* values documented below
 ```
 
 Development runs at **http://localhost:3000/** in mock mode by default. The port
@@ -26,18 +26,22 @@ for local OAuth, PWA behavior and the six category-description markers.
 ## Current status and remaining work
 
 The isolated `localtest` backend in eu-central-1 has been deployed successfully.
-The owner verified Google OAuth state/PKCE and Calendar integration live. Backend
+The owner verified Google OAuth state/PKCE and Calendar integration live. The owner
+also reports the `prod` backend deployed successfully at
+`https://as4vfvezdg.execute-api.eu-central-1.amazonaws.com/prod`. Production frontend
+build settings are in [frontend development](docs/2-development/workflow--frontend--development.md). Backend
 versions are Node.js 24, Serverless Framework 4.43.0 and Google APIs SDK 185.0.0.
 The existing `/dev` deployment and [legacy GitHub Pages site](https://marksav85.github.io/meet/)
 remain separate; this root-path build is not a replacement `/meet/` deployment.
 
-At last verification, **120 frontend tests** and **52 backend tests** passed.
-The frontend production dependency audit had zero findings; development-only
-findings remain (23 moderate, eight high). The build passes with a >500 kB chunk
-warning. These are recorded results, not a fresh audit or live test on every edit.
+The frontend pre-release pass passed **161 unit/component/Gherkin tests** and
+**15 browser tests**. The production build passes without the previous chunk-size
+warning after splitting analytics. Backend tests were not rerun in this frontend
+pass. Previous dependency-audit results remain historical: production had zero
+findings; development had 23 moderate/eight high findings. No fresh audit was run.
 
-Remaining work: populate the international demonstration calendar, implement the
-visual redesign, deploy to Cloudflare and coordinate approved production OAuth
+Remaining work: populate the international demonstration calendar, review the
+implemented visual redesign, deploy to Cloudflare and coordinate approved production OAuth
 client/callback, CORS and backend/frontend configuration. Deployment permissions
 still need a reviewed least-privilege approach; the removed placeholder IAM drafts
 were not a verified policy. **Revoke temporary AWS administrator access and delete
