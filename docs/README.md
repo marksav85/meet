@@ -7,9 +7,7 @@ Current operational guidance:
 - [Authentication and API contracts](../AUTHENTICATION.md)
 - [Backend maintenance](../auth-server/README.md)
 - [Frontend development and calendar categories](2-development/workflow--frontend--development.md)
-- [Playbook setup and updates](2-development/workflow--playbook--integration.md)
 
-Together with this index, these are the seven maintained operational documents.
+Together with this index, these are the six maintained operational documents.
 Superseded modernization reports and AI handoff artifacts were removed from the
-working tree; prior committed versions remain in Git history. Canonical reusable
-guidance stays in the pinned Playbook submodule.
+working tree; prior committed versions remain in Git history.

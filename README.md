@@ -48,14 +48,11 @@ were not a verified policy. **Revoke temporary AWS administrator access and dele
 its access key after deployment work is finished.** This is an outstanding owner
 operation, not an action performed by documentation cleanup.
 
-## Documentation and Playbook
+## Documentation
 
 - [Documentation index](docs/README.md)
 - [Authentication contracts](AUTHENTICATION.md)
 - [Backend maintenance](auth-server/README.md)
-- [Playbook initialization and updates](docs/2-development/workflow--playbook--integration.md)
 - [Codex guidance](AGENTS.md)
 
-Playbook is a pinned, read-only submodule. Run `./scripts/setup-playbook.sh` after
-cloning and `./scripts/setup-playbook.sh --check` to verify it. Updates require
-approval of an exact revision. Historical modernization details remain in Git history.
+Historical modernization details remain in Git history.

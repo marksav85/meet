@@ -1,5 +1,3 @@
-# Reference submodule must never be formatted by application tooling.
-playbook/
 node_modules/
 auth-server/node_modules/
 build/

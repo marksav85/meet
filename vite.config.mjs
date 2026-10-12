@@ -23,7 +23,7 @@ export default defineConfig(({ command, mode }) => {
         cleanupOutdatedCaches: true,
       },
     })],
-    server: { host: 'localhost', port: 3000, strictPort: true, watch: { ignored: ['**/playbook/**'] } },
+    server: { host: 'localhost', port: 3000, strictPort: true },
     preview: { host: 'localhost', port: 4173, strictPort: true },
   };
 });
