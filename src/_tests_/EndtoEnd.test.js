@@ -17,7 +17,7 @@ describe("local mock-data browser behavior", () => {
       else request.abort(); // Includes external fonts, Google, and AWS.
     });
     page.on("pageerror", (error) => errors.push(error.message));
-    await page.goto("http://localhost:3000/", { waitUntil: "networkidle0" });
+    await page.goto(process.env.MEET_BROWSER_URL || "http://localhost:3000/", { waitUntil: "networkidle0" });
     await page.waitForSelector(".event");
   });
   afterEach(async () => {
@@ -32,7 +32,9 @@ describe("local mock-data browser behavior", () => {
     await page.type(".city", "Berlin");
   };
   test("shows events from all cities by default", async () => {
-    expect(await page.$$eval(".event", (events) => events.length)).toBe(32);
+    expect(await page.$$eval(".event", (events) => events.length)).toBe(35);
+    expect(await page.$("#event-number input")).toBeNull();
+    expect(await page.$eval("#results-count", (element) => element.textContent)).toBe("35 upcoming events found");
     expect(await page.$eval(".event_summary", (element) => element.textContent.trim())).not.toBe("");
   });
   test("shows matching city suggestions", async () => {
@@ -44,6 +46,19 @@ describe("local mock-data browser behavior", () => {
     await page.click(".suggestions li");
     await page.waitForFunction(() => document.querySelectorAll(".event").length === 17);
     expect(await page.$$eval(".event_location", (items) => items.map((item) => item.textContent))).toEqual(Array(17).fill("Berlin, Germany"));
+  });
+  test("category selector filters and restores the list", async () => {
+    expect(await page.$$eval("#category-filter option", (options) => options.length)).toBe(7);
+    await page.select("#category-filter select", "Cloud & DevOps");
+    await page.waitForFunction(() => document.querySelectorAll(".event").length === 0);
+    expect(await page.$eval(".App", (app) => app.textContent)).toContain("No events found.");
+    await page.select("#category-filter select", "Web Development");
+    await page.waitForFunction(() => document.querySelectorAll(".event").length === 35);
+    await searchBerlin();
+    await page.click(".suggestions li");
+    await page.waitForFunction(() => document.querySelectorAll(".event").length === 17);
+    await page.select("#category-filter select", "All Categories");
+    expect(await page.$$eval(".event", (events) => events.length)).toBe(17);
   });
   test("details start collapsed", async () => {
     expect(await page.$(".event .event_details")).toBeNull();
@@ -62,31 +77,17 @@ describe("local mock-data browser behavior", () => {
     await page.waitForSelector(".event .event_details", { hidden: true });
     expect(await page.$(".event .event_details")).toBeNull();
   });
-  test("invalid count preserves the last valid list", async () => {
-    const input = await page.$("#event-number input");
-    await input.click({ clickCount: 3 });
-    await input.type("10");
-    await page.waitForFunction(() => document.querySelectorAll(".event").length === 10);
-    await input.click({ clickCount: 3 });
-    await input.type("0");
-    expect(await page.$$eval(".event", (events) => events.length)).toBe(10);
-    expect(await page.$eval(".alerts-container", (element) => element.textContent)).toContain("whole number from 1 to 32");
-  });
-  test("charts render real SVGs and update when the count changes", async () => {
+  test("charts render real SVGs and update when city changes", async () => {
     expect(await page.$$eval(".recharts-wrapper > svg.recharts-surface", (items) => items.length)).toBe(2);
     expect(await page.$$eval(".recharts-legend-item-text", (items) => items.map((item) => item.textContent))).toEqual(["Web Development", "AI & Emerging Tech", "UX & Creative Tech", "Cloud & DevOps", "Gaming & Interactive", "Startups & Networking"]);
     const before = await page.$eval(".recharts-scatter", (element) => element.innerHTML);
-    const input = await page.$("#event-number input");
-    await input.click({ clickCount: 3 });
-    await input.type("10");
-    await page.waitForFunction(() => document.querySelectorAll(".event").length === 10);
+    await searchBerlin();
+    await page.click(".suggestions li");
+    await page.waitForFunction(() => document.querySelectorAll(".event").length === 17);
+    expect(await page.$eval("#results-count", (element) => element.textContent)).toBe("17 upcoming events found");
     await page.waitForFunction((previous) => document.querySelector(".recharts-scatter").innerHTML !== previous, {}, before);
   });
-  test("city chart follows a same-length city filter", async () => {
-    const input = await page.$("#event-number input");
-    await input.click({ clickCount: 3 });
-    await input.type("10");
-    await page.waitForFunction(() => document.querySelectorAll(".event").length === 10);
+  test("city chart counts agree with the filtered cards", async () => {
     await searchBerlin();
     await page.click(".suggestions li");
     await page.waitForFunction(() => [...document.querySelectorAll(".event_location")].every((item) => item.textContent === "Berlin, Germany"));
@@ -96,7 +97,7 @@ describe("local mock-data browser behavior", () => {
     expect(await page.$eval(".recharts-tooltip-wrapper", (element) => element.textContent)).toContain("Number of Events : 0");
     const points = await page.$$(".recharts-scatter-symbol");
     await points[1].hover();
-    expect(await page.$eval(".recharts-tooltip-wrapper", (element) => element.textContent)).toContain("Number of Events : 10");
+    expect(await page.$eval(".recharts-tooltip-wrapper", (element) => element.textContent)).toContain("Number of Events : 17");
   });
 
 });

@@ -20,8 +20,9 @@ describe("<App /> component", () => {
     expect(AppDOM.querySelector("#city-search")).toBeInTheDocument();
   });
 
-  test("render NumberOfEvents", () => {
-    expect(AppDOM.querySelector("#event-number")).toBeInTheDocument();
+  test("renders a read-only results count", () => {
+    expect(screen.getByText("35 upcoming events found")).toBeVisible();
+    expect(screen.queryByRole("textbox", { name: "Number of events" })).not.toBeInTheDocument();
   });
 });
 

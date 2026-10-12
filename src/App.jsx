@@ -1,13 +1,19 @@
 import "./App.css";
+import { EVENT_CATEGORIES, getEventCategory } from "./event-categories";
 import { useEffect, useMemo, useState } from "react";
 import EventErrorBoundary from "./components/EventErrorBoundary";
 import CitySearch from "./components/CitySearch";
 import EventList from "./components/EventList";
-import NumberOfEvents from "./components/NumberOfEvents";
 import CityEventsChart from "./components/CityEventsChart";
 import EventGenresChart from "./components/EventGenresChart";
 import { extractLocations, getEvents, AuthError, startAuthentication } from "./api";
-import { InfoAlert, ErrorAlert, WarningAlert } from "./components/Alert";
+import { InfoAlert, WarningAlert } from "./components/Alert";
+
+const MAX_EVENTS = 50;
+const eventStartTime = (event) => {
+  const time = Date.parse(event.start?.dateTime || event.start?.date);
+  return Number.isFinite(time) ? time : Infinity;
+};
 
 const App = () => {
   const [allEvents, setAllEvents] = useState([]);
@@ -15,10 +21,9 @@ const App = () => {
   const [loadError, setLoadError] = useState("");
   const [canAuthorize, setCanAuthorize] = useState(false);
   const [reload, setReload] = useState(0);
-  const [currentNOE, setCurrentNOE] = useState(32);
+  const [currentCategory, setCurrentCategory] = useState("All Categories");
   const [currentCity, setCurrentCity] = useState("See all cities");
   const [infoAlert, setInfoAlert] = useState("");
-  const [errorAlert, setErrorAlert] = useState("");
   const [warningAlert, setWarningAlert] = useState("");
 
   useEffect(() => {
@@ -70,11 +75,19 @@ const App = () => {
     };
   }, [reload]);
 
-  const allLocations = useMemo(() => extractLocations(allEvents), [allEvents]);
-  const filteredEvents = currentCity === "See all cities"
-    ? allEvents
-    : allEvents.filter((event) => event.location === currentCity);
-  const events = filteredEvents.slice(0, currentNOE);
+  // Google supplies upcoming events; keep mock/offline feeds in chronological order too.
+  const upcomingEvents = useMemo(() => [...allEvents]
+    .sort((a, b) => {
+      const first = eventStartTime(a);
+      const second = eventStartTime(b);
+      return first === second ? 0 : first < second ? -1 : 1;
+    })
+    .slice(0, MAX_EVENTS), [allEvents]);
+  const allLocations = useMemo(() => extractLocations(upcomingEvents), [upcomingEvents]);
+  const events = upcomingEvents.filter((event) =>
+    (currentCity === "See all cities" || event.location === currentCity) &&
+    (currentCategory === "All Categories" || getEventCategory(event) === currentCategory)
+  );
   const authorize = async () => {
     setCanAuthorize(false);
     try { await startAuthentication({ explicit: true }); }
@@ -89,7 +102,6 @@ const App = () => {
     <div className="App">
       <div className="alerts-container">
         {infoAlert.length ? <InfoAlert text={infoAlert} /> : null}
-        {errorAlert.length ? <ErrorAlert text={errorAlert} /> : null}
         {warningAlert ? <WarningAlert text={warningAlert} /> : null}
       </div>
       <CitySearch
@@ -97,16 +109,19 @@ const App = () => {
         setCurrentCity={setCurrentCity}
         setInfoAlert={setInfoAlert}
       />
-      <NumberOfEvents
-        setCurrentNOE={setCurrentNOE}
-        setErrorAlert={setErrorAlert}
-      />
+      <div id="category-filter">
+        <select aria-label="Event category" value={currentCategory} onChange={(event) => setCurrentCategory(event.target.value)}>
+          <option>All Categories</option>
+          {EVENT_CATEGORIES.map(({ name }) => <option key={name}>{name}</option>)}
+        </select>
+      </div>
       {loading && <p role="status">Loading events…</p>}
       {loadError && (
         <div role="alert">
           {loadError} {canAuthorize ? <button onClick={authorize}>Authorize with Google</button> : <button onClick={retry}>Try again</button>}
         </div>
       )}
+      {!loading && !loadError && <p role="status" id="results-count">{events.length} upcoming {events.length === 1 ? "event" : "events"} found</p>}
       {!loading && !loadError && events.length === 0 && <p role="status">No events found.</p>}
       <EventErrorBoundary resetKey={allEvents} onRetry={retry}>
         <div className="charts-container">

@@ -25,30 +25,12 @@ test.each([undefined, {}, { dateTime: "bad" }, { dateTime: 123 }, { dateTime: "2
   expect(formatEventStart(start)).toBe("Date unavailable");
 });
 
-test.each(["", "0", "-1", "1.5", "hello", "33"])("invalid count %p preserves the last valid list and recovers", async (value) => {
-  await openApp();
-  const user = userEvent.setup();
-  const input = screen.getByRole("textbox", { name: "Number of events" });
-  const list = screen.getByRole("list", { name: "Events" });
-  await user.clear(input);
-  await user.type(input, "10");
-  expect(within(list).getAllByRole("listitem")).toHaveLength(10);
-  // A paste/change applies the entire invalid value, avoiding valid prefixes.
-  fireEvent.change(input, { target: { value } });
-  expect(within(list).getAllByRole("listitem")).toHaveLength(10);
-  expect(screen.getByText("Please enter a whole number from 1 to 32")).toBeVisible();
-  await user.clear(input);
-  await user.type(input, "32");
-  expect(within(list).getAllByRole("listitem")).toHaveLength(32);
-  expect(screen.queryByText("Please enter a whole number from 1 to 32")).not.toBeInTheDocument();
-});
-
 test.each([undefined, null, {}, [null], ["bad"]])("malformed event response %p reports an error and retries", async (response) => {
   getEvents.mockResolvedValueOnce(response);
   render(<App />);
   expect(await screen.findByRole("alert")).toHaveTextContent("Events could not be loaded");
   await userEvent.setup().click(screen.getByRole("button", { name: "Try again" }));
-  expect(await screen.findAllByRole("button", { name: "Show details" })).toHaveLength(32);
+  expect(await screen.findAllByRole("button", { name: "Show details" })).toHaveLength(35);
 });
 test("rejected request is handled", async () => {
   getEvents.mockRejectedValueOnce(new Error("network"));

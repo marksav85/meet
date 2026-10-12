@@ -35,7 +35,8 @@ p {
 }
 
 input[type="text"],
-input[type="number"] {
+input[type="number"],
+#category-filter select {
   padding: 8px 6px 8px 10px;
   border-radius: 4px;
   outline: none;
