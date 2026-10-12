@@ -6,7 +6,11 @@ frameworkVersion: "4.43.0"
 custom:
   allowedStages:
     localtest: localtest
+    prod: prod
   selectedStage: ${self:custom.allowedStages.${opt:stage, 'localtest'}}
+  oauthRedirectDefaults:
+    localtest: '["https://marksav85.github.io/meet/"]'
+    prod: '["https://meet.marksavilledesigns.com/"]'
 
 build:
   esbuild: false
@@ -28,9 +32,9 @@ provider:
     CLIENT_ID: ${env:CLIENT_ID}
     CLIENT_SECRET: ${env:CLIENT_SECRET}
     CALENDAR_ID: ${env:CALENDAR_ID}
-    # Trusted deployment configuration; never accept arbitrary callback URLs.
-    # Add localhost only on the isolated testing stage prepared in a later phase.
-    OAUTH_REDIRECT_URIS: ${env:OAUTH_REDIRECT_URIS, '["https://marksav85.github.io/meet/"]'}
+    # Private environment overrides remain authoritative; prod wrappers require one.
+    # Preserve the historical localtest default without using it for prod.
+    OAUTH_REDIRECT_URIS: ${env:OAUTH_REDIRECT_URIS, self:custom.oauthRedirectDefaults.${self:custom.selectedStage}}
 
 # Explicit packaging exclusions protect local configuration and test fixtures.
 package:

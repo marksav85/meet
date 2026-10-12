@@ -6,7 +6,10 @@
   "scripts": {
     "test": "node test/handler.test.js && node test/sdk.test.js && node test/config.test.js",
     "check:local": "node scripts/check-local.cjs",
-    "package:localtest": "node scripts/serverless-package.cjs"
+    "package:localtest": "node scripts/serverless-package.cjs",
+    "check:prod": "node scripts/serverless-prod.cjs check --stage prod",
+    "package:prod": "node scripts/serverless-prod.cjs package",
+    "deploy:prod": "node scripts/serverless-prod.cjs deploy"
   },
   "author": "",
   "license": "ISC",

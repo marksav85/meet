@@ -75,3 +75,33 @@ test('missing server configuration fails safely', async () => { delete process.e
 
 for (const tokens of [null, {}, {access_token:'fake-bearer',expiry_date:1}, {access_token:'bad token',expiry_date:9999999999999}]) test('invalid or expired upstream token response fails safely',async()=>{tokenResult=tokens;const result=await handler.getAccessToken(event());assert.equal(result.statusCode,502);assert.doesNotMatch(result.body,/fake-bearer|bad token/);});
 test('invalid callback configuration fails safely',async()=>{process.env.OAUTH_REDIRECT_URIS='not-json';assert.equal((await handler.getAuthURL(event())).statusCode,500);});
+
+test('production callback reuses state/PKCE and restricts CORS to its approved origin', async () => {
+  const prodCallback = 'https://meet.marksavilledesigns.com/';
+  const prodOrigin = new URL(prodCallback).origin;
+  process.env.OAUTH_REDIRECT_URIS = JSON.stringify([prodCallback]);
+  const result = await handler.getAuthURL(event('POST', { ...input, redirectUri: prodCallback }, { Origin: prodOrigin }));
+  assert.equal(result.statusCode, 200);
+  assert.equal(result.headers['Access-Control-Allow-Origin'], prodOrigin);
+  const url = new URL(payload(result).authUrl);
+  assert.equal(url.searchParams.get('redirect_uri'), prodCallback);
+  assert.equal(url.searchParams.get('code_challenge_method'), 'S256');
+  assert.equal(url.searchParams.get('state'), input.state);
+  assert.equal((await handler.getAuthURL(event('POST', { ...input, redirectUri: prodCallback.slice(0, -1) }, { Origin: prodOrigin }))).statusCode, 400);
+  for (const denied of [origin, 'http://localhost:3000', 'https://preview.pages.dev']) {
+    assert.equal((await handler.getAuthURL(event('POST', { ...input, redirectUri: prodCallback }, { Origin: denied }))).statusCode, 403);
+  }
+});
+test('production Calendar/preflight retain bearer contracts without credentials or wildcard CORS', async () => {
+  const prodCallback = 'https://meet.marksavilledesigns.com/';
+  const prodOrigin = new URL(prodCallback).origin;
+  process.env.OAUTH_REDIRECT_URIS = JSON.stringify([prodCallback]);
+  const result = await handler.getCalendarEvents(event('GET', {}, { Origin: prodOrigin, Authorization: 'Bearer fixture-token' }));
+  assert.equal(result.statusCode, 200);
+  assert.equal(result.headers['Access-Control-Allow-Origin'], prodOrigin);
+  assert.equal(result.headers['Access-Control-Allow-Credentials'], undefined);
+  assert.deepEqual(payload(result), { events: [{ id: 'event' }] });
+  const preflight = await handler.getCalendarEvents(event('OPTIONS', {}, { Origin: prodOrigin, 'Access-Control-Request-Method': 'GET', 'Access-Control-Request-Headers': 'authorization' }));
+  assert.equal(preflight.statusCode, 204);
+  assert.equal(preflight.headers['Access-Control-Allow-Origin'], prodOrigin);
+});

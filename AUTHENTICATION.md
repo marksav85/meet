@@ -48,7 +48,14 @@ never frontend variables, Git, documentation or AI artifacts. Calendar access us
 For localtest, use the development client and exact callback allowlist:
 `["http://localhost:3000/"]`. The YAML default is the legacy production callback,
 so localtest must explicitly override it. Do not substitute another hostname,
-port or `/meet/`. CORS derives exact approved origins from callbacks, handles
+port or `/meet/`. Production source now supports the separate `prod` stage for
+`https://meet.marksavilledesigns.com/`. Its guarded commands require production
+credentials and `OAUTH_REDIRECT_URIS=["https://meet.marksavilledesigns.com/"]`;
+the production backend has not been deployed. See [backend maintenance](auth-server/README.md)
+for the explicit offline checks and later deployment commands. `localtest` and
+historical `/dev` remain separate.
+
+CORS derives exact approved origins from callbacks, handles
 OPTIONS and allows Content-Type/Authorization without cookies or wildcard origins.
 A second client in the existing Google project shares consent/audience and quotas;
 it is not an independent sandbox. Protect the production client/project settings.
