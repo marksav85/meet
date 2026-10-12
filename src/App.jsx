@@ -7,7 +7,7 @@ import CategoryFilter from "./components/CategoryFilter";
 import ThemeToggle from "./components/ThemeToggle";
 import Icon from "./components/Icon";
 import EventList from "./components/EventList";
-import { extractLocations, getEvents, AuthError, startAuthentication, signOut, subscribeAuthentication } from "./api";
+import { extractLocations, getEvents, AuthError, startAuthentication, signOut, subscribeAuthentication, isMockMode } from "./api";
 import { InfoAlert, WarningAlert } from "./components/Alert";
 
 // Keep the charting library out of the initial UI/authentication bundle.
@@ -23,6 +23,7 @@ const eventStartTime = (event) => {
 const App = () => {
   const loadVersion = useRef(0);
   const [authenticated, setAuthenticated] = useState(false);
+  const [requiresSignIn, setRequiresSignIn] = useState(() => !isMockMode());
   const [allEvents, setAllEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -36,6 +37,7 @@ const App = () => {
   useEffect(() => subscribeAuthentication(({ authenticated: signedIn, error }) => {
     setAuthenticated(signedIn);
     if (error) {
+      setRequiresSignIn(true);
       loadVersion.current += 1;
       setAllEvents([]);
       setLoading(false);
@@ -83,6 +85,7 @@ const App = () => {
       } catch (error) {
         if (isCurrent()) {
           setAllEvents([]);
+          if (error instanceof AuthError && error.code === "AUTH_REQUIRED") setRequiresSignIn(true);
           setLoadError(error instanceof AuthError ? error.message : "Events could not be loaded. Please check your connection and try again.");
           setCanAuthorize(error instanceof AuthError && error.canAuthorize);
         }
@@ -113,10 +116,13 @@ const App = () => {
   const authorize = async () => {
     setCanAuthorize(false);
     const pending = startAuthentication({ explicit: true });
+    setLoading(true);
+    setLoadError("");
     const version = loadVersion.current;
     try { await pending; }
     catch (error) {
       if (version !== loadVersion.current) return;
+      setLoading(false);
       setLoadError(error instanceof AuthError ? error.message : "Authorization could not be started. Please try again.");
       setCanAuthorize(error instanceof AuthError && error.canAuthorize);
     }
@@ -140,6 +146,17 @@ const App = () => {
         <h1 id="hero-title">Discover tech gatherings<br className="hero-break" /> across the globe</h1>
         <p>Curated community summits, engineering exchanges, and developer workshops. Purely exploratory and open to all builders.</p>
       </section>
+      {requiresSignIn && !authenticated ? (
+        <section className="load-state welcome-panel" aria-labelledby="welcome-title" aria-busy={loading}>
+          <h2 id="welcome-title">{loading ? "Loading Meet" : "Your next connection starts here"}</h2>
+          {!loading && <p>Sign in with Google to explore upcoming tech events and discover your community.</p>}
+          {loading ? <p role="status">Checking your session or completing Google sign-in…</p> : <>
+            {loadError && loadError !== "Please authorize with Google to continue." && <div role="alert" className="error-state"><p>{loadError}</p></div>}
+            <button className="continue-google-btn" type="button" onClick={authorize}>Continue with Google</button>
+            {loadError && !canAuthorize && <p className="chart-note">Try signing in again. If this continues, check browser session storage or contact the site owner about authentication configuration.</p>}
+          </>}
+        </section>
+      ) : (<>
       <section className="filter-panel" aria-label="Event filters">
         <div className="filter-row">
           <CitySearch allLocations={allLocations} setCurrentCity={setCurrentCity} setInfoAlert={setInfoAlert} />
@@ -180,6 +197,7 @@ const App = () => {
           </aside>
         </div>
       </EventErrorBoundary>
+      </>)}
     </main>
   );
 };

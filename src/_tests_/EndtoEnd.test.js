@@ -185,6 +185,20 @@ describe("short-lived OAuth browser sessions", () => {
     await page.goto(base, { waitUntil: "networkidle0" });
     await page.waitForSelector(".event");
   };
+  test("fresh visits show a responsive themed welcome without requesting protected events", async () => {
+    await page.setViewport({ width: 320, height: 900 });
+    await page.goto(base, { waitUntil: "networkidle0" });
+    await page.waitForSelector(".continue-google-btn");
+    expect(eventRequests).toBe(0);
+    expect(await page.$(".filter-panel")).toBeNull();
+    expect(await page.$(".charts-container")).toBeNull();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.click(".theme-toggle");
+    expect(await page.$(".continue-google-btn")).not.toBeNull();
+    await page.focus(".continue-google-btn");
+    await page.keyboard.press("Enter");
+    await page.waitForSelector(".welcome-panel [role='alert']");
+  });
   test("refresh keeps the original expiry and Sign out clears events and prevents restoration", async () => {
     await open();
     const expiresAt = await page.evaluate(() => JSON.parse(sessionStorage.getItem("meet.oauth.session")).expiresAt);
@@ -199,7 +213,7 @@ describe("short-lived OAuth browser sessions", () => {
     const requests = eventRequests;
     await page.reload({ waitUntil: "networkidle0" });
     expect(await page.$(".event")).toBeNull(); expect(eventRequests).toBe(requests);
-    expect(await page.$eval('.error-state', (element) => element.textContent)).toContain("Authorize with Google");
+    expect(await page.$eval('.welcome-panel', (element) => element.textContent)).toContain("Continue with Google");
   });
   test("timer clears the UI and cached data before access-token expiry", async () => {
     await open(33000);
@@ -227,7 +241,7 @@ describe("short-lived OAuth browser sessions", () => {
     await page.evaluate(() => window.dispatchEvent(new Event("online")));
     await page.waitForFunction(() => document.querySelectorAll(".event").length === 0 && document.querySelector(".error-state") !== null);
     expect(await page.evaluate(() => sessionStorage.getItem("meet.oauth.session"))).toBeNull();
-    expect(await page.$eval('.error-state', (element) => element.textContent)).toContain("Authorize with Google");
+    expect(await page.$eval('.welcome-panel', (element) => element.textContent)).toContain("Continue with Google");
   });
   test("offline cache requires a valid session and cannot bypass sign-out", async () => {
     await open(3600000, true);

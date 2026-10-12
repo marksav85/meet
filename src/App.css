@@ -193,3 +193,8 @@ h1, h2, h3, p { margin: 0; }
   .event { transition: none; }
   .event:hover { transform: none; }
 }
+
+.welcome-panel { text-align: center; padding: 40px 24px; }
+.welcome-panel h2 { color: var(--text); margin-bottom: 12px; }
+.welcome-panel > p { margin-bottom: 20px; }
+.load-state .continue-google-btn { background: var(--primary); color: var(--on-primary); padding: 14px 24px; min-height: 48px; border-radius: 8px; font-weight: 600; margin-top: 16px; }

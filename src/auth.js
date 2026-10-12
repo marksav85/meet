@@ -94,7 +94,8 @@ export const createAuthClient = (options = {}) => {
     if (status === "reauthorize" || status === "pending" || !record || typeof record !== "object" || Array.isArray(record) || Object.keys(record).length !== 2 ||
         !validToken(record.value) || !Number.isFinite(record.expiresAt) || record.expiresAt <= now() + EXPIRY_MARGIN ||
         record.expiresAt > now() + 86400000) {
-      clearAuthentication(required(), false);
+      const expired = validToken(record?.value) && Number.isFinite(record?.expiresAt) && record.expiresAt <= now() + EXPIRY_MARGIN;
+      clearAuthentication(expired ? new AuthError("AUTH_REQUIRED", "Your session has expired. Please sign in again.") : required(), false);
       return;
     }
     // Reuse the recorded deadline; recalculating from a duration would extend each reload.
@@ -291,10 +292,9 @@ export const createAuthClient = (options = {}) => {
     if (authInFlight) return authInFlight;
     if (usable()) return accessToken.value;
     if (accessToken) expire();
-    if (getStatus()) throw new AuthError("AUTH_REQUIRED", "Please authorize with Google to continue.");
-    if (!isOnline()) throw required();
-    await start();
-    throw new AuthError("AUTH_REDIRECT", "Redirecting to Google…", false);
+    if (getStatus()) throw lastError?.code === "AUTH_REQUIRED" ? lastError : required();
+    // Visiting the app must never start OAuth; only the welcome button authorizes.
+    throw lastError || required();
   };
   const getEvents = async () => {
     prepare();

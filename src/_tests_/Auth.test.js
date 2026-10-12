@@ -55,8 +55,8 @@ test('expired memory token requires explicit reauthorization without redirect lo
   await auth.startAuthentication({ explicit: true }); expect(navigate).toHaveBeenCalledTimes(2);
 });
 test('calendar rejection invalidates token and requires explicit authorization', async () => { const attempt = await begin(); const auth = client(`?code=fake-code&state=${attempt.state}`).auth; await auth.getAccessToken(); fetchMock.mockResolvedValue(response({ error: { message: 'private-token' } }, 401)); await expect(auth.getEvents()).rejects.toMatchObject({ code: 'AUTH_REQUIRED' }); await expect(auth.getAccessToken()).rejects.toMatchObject({ code: 'AUTH_REQUIRED' }); });
-test('network errors are sanitized and do not cause repeated redirects', async () => { fetchMock.mockRejectedValue(new Error('private-code')); const auth = client().auth; await expect(auth.getEvents()).rejects.toMatchObject({ code: 'AUTH_NETWORK' }); await expect(auth.getEvents()).rejects.toMatchObject({ code: 'AUTH_REQUIRED' }); expect(navigate).not.toHaveBeenCalled(); });
-test('malformed response is controlled', async () => { fetchMock.mockResolvedValue(response(null)); await expect(client().auth.getEvents()).rejects.toMatchObject({ code: 'INVALID_RESPONSE' }); });
+test('network errors are sanitized and do not cause repeated redirects', async () => { fetchMock.mockRejectedValue(new Error('private-code')); const auth = client().auth; await expect(auth.startAuthentication({ explicit: true })).rejects.toMatchObject({ code: 'AUTH_NETWORK' }); await expect(auth.getEvents()).rejects.toMatchObject({ code: 'AUTH_REQUIRED' }); expect(navigate).not.toHaveBeenCalled(); });
+test('malformed response is controlled', async () => { fetchMock.mockResolvedValue(response(null)); await expect(client().auth.startAuthentication({ explicit: true })).rejects.toMatchObject({ code: 'INVALID_RESPONSE' }); });
 test('unavailable session storage fails before network or navigation', async () => { session.getItem = () => { throw new Error('blocked'); }; await expect(client().auth.getEvents()).rejects.toMatchObject({ code: 'SESSION_UNAVAILABLE' }); expect(fetchMock).not.toHaveBeenCalled(); });
 test('concurrent event loads share one callback exchange', async () => { const attempt = await begin(); const auth = client(`?code=fake-code&state=${attempt.state}`).auth; await Promise.all([auth.getEvents(), auth.getEvents()]); expect(fetchMock.mock.calls.filter(([url]) => url.endsWith('/api/token'))).toHaveLength(1); });
 test('mock mode makes no authentication requests', async () => {
@@ -71,4 +71,10 @@ test('callback exchange network failure consumes transaction without replay', as
 test('invalid token response is rejected without persisting credentials', async () => {
   const attempt = await begin(); fetchMock.mockResolvedValue(response({ access_token: 'fake-bearer', token_type: 'Bearer', expires_in: 0 }));
   await expect(client(`?code=fake-code&state=${attempt.state}`).auth.getEvents()).rejects.toMatchObject({ code: 'INVALID_TOKEN_RESPONSE' }); expect(cache.getItem('access_token')).toBeNull();
+});
+
+test('fresh visits require a button action without requesting an auth URL or redirecting', async () => {
+  await expect(client().auth.getEvents()).rejects.toMatchObject({ code: 'AUTH_REQUIRED' });
+  expect(fetchMock).not.toHaveBeenCalled();
+  expect(navigate).not.toHaveBeenCalled();
 });

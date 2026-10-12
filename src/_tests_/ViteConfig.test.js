@@ -15,7 +15,7 @@ test('public Vite variables configure local OAuth with no live requests', async 
   const config = getAuthConfig(new URL('http://localhost:3000/'));
   const fetch = jest.fn().mockRejectedValue(new Error('offline test'));
   const auth = createAuthClient({ config, crypto: webcrypto, location: new URL('http://localhost:3000/'), fetch, sessionStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} } });
-  await expect(auth.getEvents()).rejects.toMatchObject({ code: 'AUTH_NETWORK' });
+  await expect(auth.startAuthentication({ explicit: true })).rejects.toMatchObject({ code: 'AUTH_NETWORK' });
   expect(fetch.mock.calls[0][0]).toBe('https://example.invalid/localtest/api/get-auth-url');
 });
 test('local OAuth fails closed when its API is absent', async () => {

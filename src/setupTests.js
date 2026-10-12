@@ -26,6 +26,7 @@ afterEach(() => {
 // Tests always use fixtures; never infer API access from the test runner's URL.
 jest.mock("./api", () => ({
   ...jest.requireActual("./api"),
+  isMockMode: jest.fn(),
   getEvents: jest.fn(),
   startAuthentication: jest.fn(),
   signOut: jest.fn(),
@@ -33,8 +34,9 @@ jest.mock("./api", () => ({
 }));
 
 beforeEach(() => {
-  const { getEvents, startAuthentication, signOut, subscribeAuthentication } = require("./api");
+  const { getEvents, startAuthentication, signOut, subscribeAuthentication, isMockMode } = require("./api");
   const real = jest.requireActual("./api");
+  isMockMode.mockReset().mockReturnValue(true);
   signOut.mockReset().mockImplementation(real.signOut);
   subscribeAuthentication.mockReset().mockImplementation(real.subscribeAuthentication);
   getEvents.mockReset();
