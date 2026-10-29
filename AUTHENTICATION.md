@@ -1,8 +1,12 @@
 # Meet authentication contracts
 
-The owner has verified OAuth state/S256 PKCE and Calendar integration live against
-the isolated `localtest` backend. The old `/dev` API remains separate and incompatible
-with these contracts. Production cutover requires coordinated configuration.
+The owner previously verified OAuth state/S256 PKCE and Calendar integration live
+against the isolated `localtest` backend. The old `/dev` API remains separate and
+incompatible with these contracts. The owner previously reported the frontend
+deployed at `https://meet.marksavilledesigns.com/` and the `prod` backend at
+`https://as4vfvezdg.execute-api.eu-central-1.amazonaws.com/prod`. That deployment
+report is historical; the current live frontend, API and Google configuration were
+not independently verified during this pass.
 
 ## API and browser security
 
@@ -38,8 +42,8 @@ authentication responses. No monitoring service instruments the flow.
 
 ## Configuration and CORS
 
-Public frontend configuration is described in the
-[frontend workflow](docs/2-development/workflow--frontend--development.md).
+Public frontend configuration and build inputs are described in the
+[Operations Runbook](docs/operations-runbook.md).
 Backend variables are `CLIENT_ID`, `CLIENT_SECRET`, `CALENDAR_ID` and
 `OAUTH_REDIRECT_URIS`; supply them privately through deployment configuration,
 never frontend variables, Git, documentation or AI artifacts. Calendar access uses
@@ -49,24 +53,25 @@ For localtest, use the development client and exact callback allowlist:
 `["http://localhost:3000/"]`. The YAML default is the legacy production callback,
 so localtest must explicitly override it. Do not substitute another hostname,
 port or `/meet/`. Production source now supports the separate `prod` stage for
-`https://meet.marksavilledesigns.com/`. Its guarded commands require production
-credentials and `OAUTH_REDIRECT_URIS=["https://meet.marksavilledesigns.com/"]`;
-the owner reports production deployment succeeded at
-`https://as4vfvezdg.execute-api.eu-central-1.amazonaws.com/prod`. See [backend maintenance](auth-server/README.md)
-for backend maintenance commands; no redeployment is part of this frontend work. `localtest` and
-historical `/dev` remain separate.
+`https://meet.marksavilledesigns.com/`. The guarded production commands require
+production credentials and `OAUTH_REDIRECT_URIS=["https://meet.marksavilledesigns.com/"]`.
+The owner previously reported the `prod` API deployment at
+`https://as4vfvezdg.execute-api.eu-central-1.amazonaws.com/prod`; this pass did not
+check its live status. See [backend maintenance](auth-server/README.md) for the
+source configuration and guarded maintenance commands. `localtest` and historical
+`/dev` remain separate.
 
 CORS derives exact approved origins from callbacks, handles
 OPTIONS and allows Content-Type/Authorization without cookies or wildcard origins.
 A second client in the existing Google project shares consent/audience and quotas;
 it is not an independent sandbox. Protect the production client/project settings.
 
-## Future production cutover
+## Production deployment and future changes
 
-Register the exact approved Cloudflare callback with the intended production client,
-configure the matching backend allowlist/CORS and public frontend API/callback,
-and verify compatible frontend/backend behavior together. Do not reuse testing
-secrets for production or deploy this frontend against the old API contracts.
-Retain existing deployments until replacement is explicitly authorized.
+The production deployment was previously reported complete. For future coordinated
+changes, confirm the approved Cloudflare callback, production client, backend
+allowlist/CORS and public frontend API/callback, then verify compatible
+frontend/backend behavior. Do not reuse testing secrets or deploy against the old
+API contracts. Retain existing deployments until replacement is explicitly authorized.
 API Gateway and Lambda diagnostics must not expose bodies, authorization headers,
 OAuth codes or tokens. See [backend maintenance](auth-server/README.md).

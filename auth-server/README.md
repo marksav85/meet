@@ -1,12 +1,15 @@
 # Meet backend maintenance
 
-The isolated `localtest` backend in eu-central-1 has been deployed successfully;
+The isolated `localtest` backend in eu-central-1 was previously reported deployed;
 the owner verified real OAuth/Calendar integration. The old `/dev` deployment
-remains separate and protected. Versions are Node.js 24 (`>=24 <25`), Lambda
-`nodejs24.x`, Serverless Framework **4.43.0** and Google APIs SDK **185.0.0**.
-The backend manifest/lockfile is independent of frontend tooling. `prod` is now
-prepared in source for `https://meet.marksavilledesigns.com/`; it has not been
-packaged or deployed by this change. Both stages reuse the same Lambda handlers.
+remains separate and protected. Production deployment of the `prod` backend was
+also reported complete at
+`https://as4vfvezdg.execute-api.eu-central-1.amazonaws.com/prod`. This repository
+review did not independently verify the current live AWS, Google or frontend state.
+Source configuration supports `localtest` and `prod`, which reuse the same Lambda
+handlers. Versions are Node.js 24 (`>=24 <25`), Lambda `nodejs24.x`, Serverless
+Framework **4.43.0** and Google APIs SDK **185.0.0**. The backend manifest/lockfile
+is independent of frontend tooling.
 
 ## Local checks
 
@@ -45,7 +48,7 @@ authenticated localtest packaging session:
 npm run package:localtest --prefix auth-server -- --stage localtest
 ```
 
-## Production preparation and deployment
+## Production deployment and future maintenance
 
 Use private, production-specific environment settings for:
 
@@ -66,11 +69,13 @@ and force `eu-central-1`. Extra options, another stage/config/region, prebuilt
 packages, function-only deploys, `print` and `remove` are not supported. These are
 local safeguards, not AWS IAM boundaries.
 
-Next steps require separate authorization; none were executed during preparation:
+The production deployment was previously reported complete; the guarded commands
+below remain for future authorized packaging or deployment work. They were not run
+during this pass:
 
 1. Confirm the intended AWS account/profile and temporary least-privilege access,
    region `eu-central-1`, and Serverless v4 authentication/license eligibility.
-   Confirm the intended new stack is `auth-server-prod`; preserve `auth-server-localtest`
+   Confirm the intended stack is `auth-server-prod`; preserve `auth-server-localtest`
    and historical `/dev` resources, Google clients and GitHub Pages publishing.
 2. Privately configure the production Google client and exact callback above,
    confirm consent/audience/API access, and load the four backend environment
@@ -98,15 +103,17 @@ Next steps require separate authorization; none were executed during preparation
    artifacts. Do not change source/environment between review and deployment;
    repackage/review if either changes. Its normal `.serverless/` output may replace
    earlier local packaging files, but it does not update the localtest deployment.
-5. Verify the returned API URL ends in `/prod`. Configure the separate frontend
-   build with `VITE_DATA_MODE=oauth`, that stage URL as `VITE_API_BASE_URL`, and
+5. After a future deployment, verify the returned API URL ends in `/prod`. For a
+   coordinated frontend release, build with `VITE_DATA_MODE=oauth`, that stage URL
+   as `VITE_API_BASE_URL`, and
    `VITE_OAUTH_REDIRECT_URI=https://meet.marksavilledesigns.com/`. Verify production
    OAuth/PKCE, bearer Calendar retrieval, CORS/preflight and rejected test origins,
    refresh/session expiry/sign-out, and unchanged localtest/GitHub Pages/`dev`.
 
-No production API ID or endpoint is known until deployment. Do not point the new
-frontend at the legacy `/dev` contracts or retire existing deployments during
-this verification.
+The production endpoint above is previously reported, not independently confirmed
+by this pass. Confirm the live endpoint before future coordinated releases. Do not
+point the frontend at legacy `/dev` contracts or retire existing deployments during
+verification.
 
 Packaging is **not read-only**: Serverless v4 can initialize/write S3/SSM deployment
 storage. The regional deployment bucket/pointer may be shared across services.

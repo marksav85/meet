@@ -103,7 +103,7 @@ it uses bundled fixtures without Google sign-in or AWS access. The explicit mode
 also overrides local OAuth settings. The development port is fixed.
 
 For real Google OAuth and AWS integration, follow the
-[frontend development guide](docs/2-development/workflow--frontend--development.md),
+[Operations Runbook](docs/operations-runbook.md),
 [authentication contracts](AUTHENTICATION.md) and
 [backend maintenance guide](auth-server/README.md). Backend dependencies and
 configuration are separate from the frontend. Never place client secrets, AWS
@@ -120,13 +120,13 @@ npm run check:local --prefix auth-server
 
 Browser tests use Puppeteer with a separate Node-based Jest configuration and
 block external requests. They require the matching Chrome installation; see the
-frontend guide if the browser download was skipped during installation.
+Operations Runbook if the browser download was skipped during installation.
 
 ### Production build
 
 Build with explicit public production settings. The URLs below are examples;
 use your configured API endpoint and exact OAuth callback as described in the
-[frontend development guide](docs/2-development/workflow--frontend--development.md):
+[Operations Runbook](docs/operations-runbook.md):
 
 ```sh
 VITE_DATA_MODE=oauth \
@@ -136,7 +136,9 @@ npm run build
 ```
 
 Output is `dist/`. `npm run preview` serves it at **http://localhost:4173/** for
-static inspection; real OAuth requires an exactly configured callback origin.
+static inspection; real OAuth requires an exactly configured callback origin. See
+the [Operations Runbook](docs/operations-runbook.md) for the reported production
+inputs and release checks.
 The build guard rejects missing or development-oriented release configuration.
 Building does not provision AWS resources or deploy the application.
 
@@ -151,8 +153,8 @@ Frontend environment values are embedded at build time. Private Google client
 and calendar configuration belongs in the backend deployment environment.
 Operational setup and maintenance are documented separately:
 
-- [Documentation index](docs/README.md)
-- [Frontend configuration, category markers and PWA behavior](docs/2-development/workflow--frontend--development.md)
+- [Development Handbook](docs/development-handbook.md)
+- [Operations Runbook](docs/operations-runbook.md)
 - [Authentication and API contracts](AUTHENTICATION.md)
 - [Backend checks, configuration and guarded deployment procedures](auth-server/README.md)
 - [Repository development guidance](AGENTS.md)
