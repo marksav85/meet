@@ -105,17 +105,6 @@ worker scope. Detailed cache recovery guidance is in the
 - Build guards require explicit production OAuth mode, a `/prod` API URL and an
   exact HTTPS root callback. Backend wrappers allow only `localtest` and `prod`;
   these local guards are not cloud IAM controls.
-- The Playbook submodule was removed because it disrupted Cloudflare Pages
-  deployment. Keep Playbook reference access external and read-only; do not restore
-  a submodule for documentation access.
-
-### Significant issue and resolution
-
-Project history records the Playbook submodule removal in commit `c74fbd7`. Its
-contents were development reference material, not a build or runtime dependency;
-keeping it in the deployment checkout disrupted Cloudflare Pages. The repository
-now builds without it, and the approved resolution is to consult the standalone
-Playbook rather than reintroduce the submodule.
 
 ## Development and verification
 
